@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F0EDE6;
+  --fg: #1a1a1a;
+  --green: #042b2b;
+  --green-light: rgba(4, 43, 43, 0.08);
+  --muted: #999;
+  --border: rgba(0,0,0,0.08);
+  --card: rgba(0,0,0,0.03);
+  --radius: 16px;
+}
+
+/* ── Mobile-first: full screen ─────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ── Desktop: render as an iPhone frame ─────────────────────────────── */
+@media (min-width: 600px) {
+  html {
+    background: #D8D4CC;
+    min-height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;   /* top-align so frame is never clipped */
+    justify-content: center;
+    padding: 40px 0 60px;      /* breathing room above and below */
+  }
+
+  body {
+    width: 390px;
+    max-width: 390px;
+    height: 844px;
+    min-height: 844px;
+    flex-shrink: 0;
+    margin: 0;
+    border-radius: 50px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.12),
+      0 32px 100px rgba(0,0,0,0.35),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* transform creates a containing block for position:fixed children,
+       so BottomNav stays pinned to the phone frame, not the viewport */
+    transform: translateZ(0);
+    scrollbar-width: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+input, button, textarea, select {
+  font-family: inherit;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input:focus { outline: none; }
+button:focus { outline: none; }
