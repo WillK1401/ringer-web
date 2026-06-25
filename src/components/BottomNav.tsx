@@ -1,11 +1,11 @@
 import { useNavigate, useLocation } from 'react-router';
-import { Home, Map, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, Users, Plus, Bell, User } from 'lucide-react';
 
 const NAV = [
   { icon: Home, path: '/' },
-  { icon: Map, path: '/map' },
+  { icon: Users, path: '/groups' },
   { icon: Plus, path: '/post' },
-  { icon: MessageCircle, path: '/chat' },
+  { icon: Bell, path: '/notifications' },
   { icon: User, path: '/profile' },
 ];
 

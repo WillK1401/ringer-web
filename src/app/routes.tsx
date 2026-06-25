@@ -11,6 +11,10 @@ import { Connections } from '../screens/Connections';
 import { SignIn } from '../screens/SignIn';
 import { SignUp } from '../screens/SignUp';
 import { Onboarding } from '../screens/Onboarding';
+import { UserProfile } from '../screens/UserProfile';
+import { Notifications } from '../screens/Notifications';
+import { Groups } from '../screens/Groups';
+import { GroupDetail } from '../screens/GroupDetail';
 
 function ProtectedLayout() {
   return (
@@ -33,7 +37,11 @@ export const router = createBrowserRouter([
       { path: '/chat',         Component: ChatList },
       { path: '/chat/thread',  Component: ChatThread },
       { path: '/profile',      Component: Profile },
-      { path: '/connections',  Component: Connections },
+      { path: '/connections',    Component: Connections },
+      { path: '/users/:id',      Component: UserProfile },
+      { path: '/notifications',  Component: Notifications },
+      { path: '/groups',         Component: Groups },
+      { path: '/groups/:id',     Component: GroupDetail },
     ],
   },
   { path: '/sign-in/*', Component: SignIn },

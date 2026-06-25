@@ -84,6 +84,21 @@ export const chatsApi = {
   getMyChats: () => request<{ id: string; venue: string; kickoff_at: string; role: 'organiser' | 'player' }[]>('/chats'),
 };
 
+// ── Notifications ──────────────────────────────────────────────────────────
+
+export const notificationsApi = {
+  list: () => request<any[]>('/notifications'),
+  markRead: (id: string) => request<any>(`/notifications/${id}/read`, { method: 'POST' }),
+  markAllRead: () => request<any>('/notifications/read-all', { method: 'POST' }),
+};
+
+// ── Groups ─────────────────────────────────────────────────────────────────
+
+export const groupsApi = {
+  getMyGroups: () => request<any[]>('/groups'),
+  getGroup: (id: string) => request<any>(`/groups/${id}`),
+};
+
 // ── Health ─────────────────────────────────────────────────────────────────
 
 export const healthApi = {

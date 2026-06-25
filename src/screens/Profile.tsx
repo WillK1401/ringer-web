@@ -186,14 +186,22 @@ export function Profile() {
           </div>
         )}
 
-        {/* Connections */}
-        <div className="px-6 pb-6">
+        {/* Connections + Chat */}
+        <div className="px-6 pb-6 flex flex-col gap-3">
           <button
             onClick={() => navigate('/connections')}
             className="w-full py-4 px-5 rounded-2xl flex items-center justify-between"
             style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}
           >
             <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 15, color: '#1a1a1a' }}>My Connections</span>
+            <ChevronRight size={16} color="#ccc" />
+          </button>
+          <button
+            onClick={() => navigate('/chat')}
+            className="w-full py-4 px-5 rounded-2xl flex items-center justify-between"
+            style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}
+          >
+            <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 15, color: '#1a1a1a' }}>My Chats</span>
             <ChevronRight size={16} color="#ccc" />
           </button>
         </div>
