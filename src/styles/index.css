@@ -14,7 +14,6 @@
   --radius: 16px;
 }
 
-/* ── Mobile-first: full screen ─────────────────────────────────────── */
 body {
   background: var(--bg);
   color: var(--fg);
@@ -22,44 +21,12 @@ body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  position: relative;
 }
 
-/* ── Desktop: render as an iPhone frame ─────────────────────────────── */
-@media (min-width: 600px) {
-  html {
-    background: #D8D4CC;
-    min-height: 100vh;
-    overflow-y: auto;
-    display: flex;
-    align-items: flex-start;   /* top-align so frame is never clipped */
-    justify-content: center;
-    padding: 40px 0 60px;      /* breathing room above and below */
-  }
-
-  body {
-    width: 390px;
-    max-width: 390px;
-    height: 844px;
-    min-height: 844px;
-    flex-shrink: 0;
-    margin: 0;
-    border-radius: 50px;
-    box-shadow:
-      0 0 0 1px rgba(0,0,0,0.12),
-      0 32px 100px rgba(0,0,0,0.35),
-      inset 0 0 0 1px rgba(255,255,255,0.06);
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* transform creates a containing block for position:fixed children,
-       so BottomNav stays pinned to the phone frame, not the viewport */
-    transform: translateZ(0);
-    scrollbar-width: none;
-  }
-
-  body::-webkit-scrollbar {
-    display: none;
-  }
+/* ── Desktop: remove bottom-nav padding ─────────────────────────────── */
+@media (min-width: 768px) {
+  /* Screens add pb-[80px] to clear the mobile bottom nav — not needed on desktop */
+  .pb-\[80px\] { padding-bottom: 0 !important; }
 }
 
 input, button, textarea, select {

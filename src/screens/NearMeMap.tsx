@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { gamesApi } from '../lib/api';
 import { formatTime } from '../lib/utils';
@@ -194,7 +193,6 @@ export function NearMeMap() {
         )}
       </div>
 
-      <BottomNav />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, UserPlus, Check, X } from 'lucide-react';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { connectionsApi } from '../lib/api';
 
@@ -127,7 +126,6 @@ export function Connections() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }

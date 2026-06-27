@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus, ChevronRight } from 'lucide-react';
 import { groupsApi } from '../lib/api';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { formatDate, formatTime } from '../lib/utils';
 
@@ -107,7 +106,6 @@ export function Groups() {
           <Plus size={18} /> Create a group
         </button>
       </div>
-      <BottomNav />
     </div>
   );
 }

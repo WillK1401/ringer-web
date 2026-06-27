@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Settings, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { usersApi, paymentsApi, chatsApi } from '../lib/api';
 
@@ -36,7 +35,6 @@ export function Profile() {
 
   if (loading) return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
-      <Spinner /><BottomNav />
     </div>
   );
 
@@ -206,7 +204,6 @@ export function Profile() {
           </button>
         </div>
 
-      <BottomNav />
     </div>
   );
 }

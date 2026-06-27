@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BottomNav } from '../components/BottomNav';
 import { VenueAutocomplete } from '../components/VenueAutocomplete';
 import { gamesApi, paymentsApi } from '../lib/api';
 
@@ -110,7 +109,6 @@ export function PostGame() {
           style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'Inter', fontSize: 14, color: '#999' }}>
           Back
         </button>
-        <BottomNav />
       </div>
     );
   }
@@ -261,7 +259,6 @@ export function PostGame() {
           </div>
         </div>
 
-      <BottomNav />
     </div>
   );
 }

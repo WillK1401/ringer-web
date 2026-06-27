@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router';
 import { ArrowLeft, MessageCircle, Trash2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useUser } from '@clerk/clerk-react';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { gamesApi, usersApi } from '../lib/api';
 import { formatDate, formatTime } from '../lib/utils';
@@ -74,7 +73,6 @@ export function GameDetail() {
 
   if (loading) return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
-      <Spinner /><BottomNav />
     </div>
   );
 
@@ -291,7 +289,6 @@ export function GameDetail() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }

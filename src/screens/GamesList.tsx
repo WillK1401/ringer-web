@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BottomNav } from '../components/BottomNav';
 import { AvatarStack } from '../components/AvatarStack';
 import { Spinner } from '../components/Spinner';
 import { gamesApi } from '../lib/api';
@@ -181,7 +180,6 @@ export function GamesList() {
           </div>
         )}
 
-      <BottomNav />
     </div>
   );
 }

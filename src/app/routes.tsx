@@ -15,11 +15,21 @@ import { UserProfile } from '../screens/UserProfile';
 import { Notifications } from '../screens/Notifications';
 import { Groups } from '../screens/Groups';
 import { GroupDetail } from '../screens/GroupDetail';
+import { SideNav } from '../components/SideNav';
+import { BottomNav } from '../components/BottomNav';
 
 function ProtectedLayout() {
   return (
     <>
-      <SignedIn><Outlet /></SignedIn>
+      <SignedIn>
+        <div className="flex min-h-screen" style={{ backgroundColor: '#F0EDE6' }}>
+          <SideNav />
+          <div className="flex-1 min-w-0">
+            <Outlet />
+          </div>
+        </div>
+        <BottomNav />
+      </SignedIn>
       <SignedOut><RedirectToSignIn /></SignedOut>
     </>
   );

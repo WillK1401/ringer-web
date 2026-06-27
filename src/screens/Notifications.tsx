@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Check, PoundSterling, Clock, CheckCircle2 } from 'lucide-react';
 import { notificationsApi, connectionsApi } from '../lib/api';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 
 // Design tokens
@@ -200,7 +199,6 @@ export function Notifications() {
           );
         })}
       </div>
-      <BottomNav />
     </div>
   );
 }

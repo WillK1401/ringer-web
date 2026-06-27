@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BottomNav } from '../components/BottomNav';
 import { Spinner } from '../components/Spinner';
 import { chatsApi } from '../lib/api';
 
@@ -78,7 +77,6 @@ export function ChatList() {
         </div>
       )}
 
-      <BottomNav />
     </div>
   );
 }
