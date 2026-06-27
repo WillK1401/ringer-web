@@ -136,7 +136,7 @@ export function Profile() {
                   Connect Stripe to post games and collect payments.
                 </div>
                 <button onClick={handleStripeOnboard} className="w-full py-3 rounded-full"
-                  style={{ backgroundColor: '#635bff', color: '#fff', fontFamily: 'Inter', fontWeight: 500, fontSize: 14 }}>
+                  style={{ backgroundColor: '#042b2b', color: '#F0EDE6', fontFamily: 'Inter', fontWeight: 500, fontSize: 14 }}>
                   Connect Stripe →
                 </button>
               </div>
