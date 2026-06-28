@@ -1,46 +1,58 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { VenueAutocomplete } from '../components/VenueAutocomplete';
+import { FormSection } from '../components/ui/FormSection';
 import { gamesApi, paymentsApi } from '../lib/api';
 
 type Visibility = 'first' | 'second' | 'public';
 type Recurrence = 'once' | 'weekly' | 'fortnightly';
 
-const VIS_OPTS: { key: Visibility; label: string }[] = [
-  { key: 'first', label: '1st' },
-  { key: 'second', label: '2nd' },
-  { key: 'public', label: 'Public' },
-];
-
 const REC_OPTS: { key: Recurrence; label: string }[] = [
-  { key: 'once', label: 'One-off' },
-  { key: 'weekly', label: 'Weekly' },
+  { key: 'once',        label: 'One-off'     },
+  { key: 'weekly',      label: 'Weekly'      },
   { key: 'fortnightly', label: 'Fortnightly' },
 ];
 
-const VIS_HINT: Record<Visibility, string> = {
-  first: 'Only your direct connections can see this.',
-  second: 'Friends of friends can also see it.',
-  public: 'Anyone on Ringer can find this game.',
-};
+const VIS_OPTS: { key: Visibility; label: string; description: string }[] = [
+  {
+    key: 'first',
+    label: 'Friends',
+    description: 'Only your direct connections can see this game.',
+  },
+  {
+    key: 'second',
+    label: 'Friends of Friends',
+    description: 'Friends and their connections can join.',
+  },
+  {
+    key: 'public',
+    label: 'Public',
+    description: 'Visible to everyone nearby on Ringer.',
+  },
+];
+
+// Minimum date = today (prevent past dates)
+function todayISO() {
+  return new Date().toISOString().split('T')[0];
+}
 
 export function PostGame() {
   const navigate = useNavigate();
-  const [venue, setVenue] = useState('');
-  const [venueLat, setVenueLat] = useState<number | undefined>();
-  const [venueLng, setVenueLng] = useState<number | undefined>();
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [players, setPlayers] = useState(10);
-  const [pitchCost, setPitchCost] = useState('');
-  const [visibility, setVisibility] = useState<Visibility>('second');
-  const [recurrence, setRecurrence] = useState<Recurrence>('once');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [venue,       setVenue]      = useState('');
+  const [venueLat,    setVenueLat]   = useState<number | undefined>();
+  const [venueLng,    setVenueLng]   = useState<number | undefined>();
+  const [date,        setDate]       = useState('');
+  const [time,        setTime]       = useState('');
+  const [players,     setPlayers]    = useState(10);
+  const [pitchCost,   setPitchCost]  = useState('');
+  const [visibility,  setVisibility] = useState<Visibility>('second');
+  const [recurrence,  setRecurrence] = useState<Recurrence>('once');
+  const [loading,     setLoading]    = useState(false);
+  const [error,       setError]      = useState('');
   const [stripeNeeded, setStripeNeeded] = useState(false);
 
   const pitchCostNum = parseFloat(pitchCost) || 0;
-  const perPlayer = players > 0 && pitchCostNum > 0 ? (pitchCostNum / players) : 0;
+  const perPlayer    = players > 0 && pitchCostNum > 0 ? pitchCostNum / players : 0;
 
   const handleVenueChange = (name: string, lat?: number, lng?: number) => {
     setVenue(name);
@@ -56,25 +68,25 @@ export function PostGame() {
     setLoading(true);
     setError('');
     try {
-      const kickoffAt = new Date(`${date}T${time}`).toISOString();
-      const pitchCostPence = Math.round(pitchCostNum * 100);
+      const kickoffAt       = new Date(`${date}T${time}`).toISOString();
+      const pitchCostPence  = Math.round(pitchCostNum * 100);
       await gamesApi.postGame({
         venue,
-        venueLatitude: venueLat,
+        venueLatitude:  venueLat,
         venueLongitude: venueLng,
         kickoffAt,
-        format: '5-a-side',
-        playerCount: players,
-        pitchCost: pitchCostPence,
+        format:         '5-a-side',
+        playerCount:    players,
+        pitchCost:      pitchCostPence,
         visibility,
-        autoEscalate: true,
+        autoEscalate:   true,
       });
       navigate('/');
     } catch (e: any) {
       if (e.message?.includes('STRIPE_NOT_ONBOARDED')) {
         setStripeNeeded(true);
       } else {
-        setError(e.message || 'Failed to post game');
+        setError(e.message || 'Failed to post game. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -94,20 +106,40 @@ export function PostGame() {
 
   if (stripeNeeded) {
     return (
-      <div className="min-h-screen pb-[80px] px-6 flex flex-col justify-center" style={{ backgroundColor: '#F0EDE6' }}>
-        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 24, color: '#1a1a1a', marginBottom: 12 }}>
-          Set up payments first
-        </div>
-        <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#999', lineHeight: 1.6, marginBottom: 32, fontWeight: 400 }}>
+      <div
+        className="min-h-screen pb-[80px] flex flex-col justify-center"
+        style={{ backgroundColor: '#F0EDE6', padding: '0 24px' }}
+      >
+        <h1 style={headingStyle}>Set up payments first</h1>
+        <p style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', lineHeight: 1.7, marginBottom: 40, fontWeight: 400 }}>
           Connect a Stripe account to post games and collect payment from ringers. Takes about 5 minutes.
-        </div>
-        <button onClick={handleStripeOnboard} disabled={loading} className="w-full py-4 rounded-full mb-4"
-          style={{ backgroundColor: '#635bff', color: '#fff', fontFamily: 'Inter', fontWeight: 500, fontSize: 16 }}>
+        </p>
+        <button
+          onClick={handleStripeOnboard}
+          disabled={loading}
+          className="btn-primary"
+          style={{
+            backgroundColor: '#042b2b',
+            color: '#F0EDE6',
+            fontFamily: 'Inter',
+            fontWeight: 600,
+            fontSize: 16,
+            padding: '16px 24px',
+            borderRadius: 50,
+            border: 'none',
+            cursor: 'pointer',
+            marginBottom: 16,
+            minHeight: 52,
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
           {loading ? 'Redirecting…' : 'Connect with Stripe →'}
         </button>
-        <button onClick={() => setStripeNeeded(false)}
-          style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'Inter', fontSize: 14, color: '#999' }}>
-          Back
+        <button
+          onClick={() => setStripeNeeded(false)}
+          style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}
+        >
+          ← Back to form
         </button>
       </div>
     );
@@ -115,161 +147,319 @@ export function PostGame() {
 
   return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
-        {/* Header */}
-        <div className="px-6 pt-6 pb-8">
-          <h1 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 32, color: '#1a1a1a', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-            Post a Game
-          </h1>
-        </div>
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '40px 24px 0' }}>
 
-        <div className="px-6 space-y-6">
-          {/* Venue */}
+        {/* Page title */}
+        <h1 style={{ ...headingStyle, marginBottom: 8 }}>Post a Game</h1>
+        <p style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', marginBottom: 0, fontWeight: 400 }}>
+          Fill in the details below and your game will appear in your connections' feeds.
+        </p>
+
+        {/* ── Game Details ──────────────────────────────────────────── */}
+        <FormSection title="Game Details">
           <div>
-            <label style={labelStyle}>Venue</label>
+            <label htmlFor="venue" style={labelStyle}>
+              Venue <span aria-hidden="true" style={{ color: '#c8102e' }}>*</span>
+            </label>
             <VenueAutocomplete value={venue} onChange={handleVenueChange} />
           </div>
 
-          {/* Date + Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label style={labelStyle}>Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                style={{ ...inputStyle, color: date ? '#1a1a1a' : '#999' }} />
-            </div>
-            <div>
-              <label style={labelStyle}>Time</label>
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)}
-                style={{ ...inputStyle, color: time ? '#1a1a1a' : '#999' }} />
-            </div>
-          </div>
-
-          {/* Recurrence */}
-          <div>
-            <label style={labelStyle}>Recurrence</label>
-            <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-              {REC_OPTS.map(({ key, label }, i) => (
-                <button
-                  key={key}
-                  onClick={() => setRecurrence(key)}
-                  className="flex-1 py-3"
-                  style={{
-                    fontFamily: 'Inter', fontSize: 13, fontWeight: 500,
-                    color: recurrence === key ? '#F0EDE6' : '#666',
-                    backgroundColor: recurrence === key ? '#042b2b' : 'transparent',
-                    borderRight: i < REC_OPTS.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Pitch cost + Players */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label style={labelStyle}>Pitch cost (£)</label>
-              <div className="flex items-center rounded-xl" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-                <div style={{ fontFamily: 'Inter', fontSize: 15, color: '#999', marginLeft: 16, fontWeight: 400 }}>£</div>
-                <input
-                  type="number"
-                  value={pitchCost}
-                  onChange={(e) => setPitchCost(e.target.value)}
-                  placeholder="80"
-                  className="flex-1"
-                  style={{ ...inputStyle, backgroundColor: 'transparent', paddingLeft: 8 }}
-                  min={0}
-                />
-              </div>
-            </div>
-            <div>
-              <label style={labelStyle}>Players</label>
+              <label htmlFor="date" style={labelStyle}>
+                Date <span aria-hidden="true" style={{ color: '#c8102e' }}>*</span>
+              </label>
               <input
+                id="date"
+                type="date"
+                value={date}
+                min={todayISO()}
+                onChange={(e) => setDate(e.target.value)}
+                aria-required="true"
+                style={{ ...inputStyle, color: date ? '#1a1a1a' : '#999' }}
+              />
+            </div>
+            <div>
+              <label htmlFor="time" style={labelStyle}>
+                Time <span aria-hidden="true" style={{ color: '#c8102e' }}>*</span>
+              </label>
+              <input
+                id="time"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                aria-required="true"
+                style={{ ...inputStyle, color: time ? '#1a1a1a' : '#999' }}
+              />
+            </div>
+          </div>
+        </FormSection>
+
+        {/* ── Game Setup ────────────────────────────────────────────── */}
+        <FormSection title="Game Setup">
+          <div>
+            <fieldset style={{ border: 'none', padding: 0 }}>
+              <legend style={labelStyle}>Recurrence</legend>
+              <div
+                className="flex rounded-xl overflow-hidden"
+                style={{ backgroundColor: 'rgba(0,0,0,0.04)', padding: 4, gap: 2 }}
+              >
+                {REC_OPTS.map(({ key, label }) => {
+                  const isActive = recurrence === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setRecurrence(key)}
+                      className={`seg-btn flex-1 rounded-lg${isActive ? ' seg-active' : ''}`}
+                      aria-pressed={isActive}
+                      style={{
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        fontWeight: isActive ? 600 : 400,
+                        color: isActive ? '#F0EDE6' : '#555',
+                        backgroundColor: isActive ? '#042b2b' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background-color 150ms ease, color 150ms ease',
+                        padding: '10px 8px',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          </div>
+
+          <div>
+            <label htmlFor="players" style={labelStyle}>Maximum Players</label>
+            <input
+              id="players"
+              type="number"
+              value={players}
+              onChange={(e) => setPlayers(Math.max(2, parseInt(e.target.value) || 10))}
+              min={2}
+              max={22}
+              aria-describedby="players-hint"
+              style={inputStyle}
+            />
+            <p id="players-hint" style={helperStyle}>Including yourself as organiser</p>
+          </div>
+        </FormSection>
+
+        {/* ── Pricing ───────────────────────────────────────────────── */}
+        <FormSection title="Pricing">
+          <div>
+            <label htmlFor="pitch-cost" style={labelStyle}>
+              Total Pitch Cost (£) <span aria-hidden="true" style={{ color: '#c8102e' }}>*</span>
+            </label>
+            <div
+              className="flex items-center rounded-xl"
+              style={{ backgroundColor: 'rgba(0,0,0,0.03)', border: '1px solid transparent' }}
+            >
+              <span
+                style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', marginLeft: 16, fontWeight: 400, flexShrink: 0 }}
+                aria-hidden="true"
+              >
+                £
+              </span>
+              <input
+                id="pitch-cost"
                 type="number"
-                value={players}
-                onChange={(e) => setPlayers(Math.max(2, parseInt(e.target.value) || 10))}
-                style={inputStyle}
-                min={2}
-                max={22}
+                value={pitchCost}
+                onChange={(e) => setPitchCost(e.target.value)}
+                placeholder="80"
+                className="flex-1"
+                min={0}
+                aria-required="true"
+                style={{ ...inputStyle, backgroundColor: 'transparent', border: 'none', paddingLeft: 8 }}
               />
             </div>
           </div>
 
-          {/* Visibility */}
-          <div>
-            <label style={labelStyle}>Visibility</label>
-            <div className="flex rounded-xl overflow-hidden" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-              {VIS_OPTS.map(({ key, label }, i) => (
-                <button
-                  key={key}
-                  onClick={() => setVisibility(key)}
-                  className="flex-1 py-3"
-                  style={{
-                    fontFamily: 'Inter', fontSize: 14, fontWeight: 500,
-                    color: visibility === key ? '#F0EDE6' : '#666',
-                    backgroundColor: visibility === key ? '#042b2b' : 'transparent',
-                    borderRight: i < VIS_OPTS.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#999', marginTop: 8, fontWeight: 400 }}>
-              {VIS_HINT[visibility]}
-            </div>
-          </div>
-
-          {/* Per-player preview */}
           {pitchCostNum > 0 && (
-            <div className="py-5 px-5 rounded-2xl" style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>
-              <div className="flex justify-between items-center">
-                <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400 }}>
-                  Price per player
-                </div>
-                <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 20, color: '#1a1a1a' }}>
-                  £{perPlayer % 1 === 0 ? perPlayer.toFixed(0) : perPlayer.toFixed(2)}
-                </div>
-              </div>
+            <div
+              className="flex justify-between items-center py-4 px-5 rounded-2xl"
+              style={{ backgroundColor: 'rgba(4,43,43,0.05)' }}
+              aria-live="polite"
+              aria-label={`Each player pays approximately £${perPlayer % 1 === 0 ? perPlayer.toFixed(0) : perPlayer.toFixed(2)}`}
+            >
+              <span style={{ fontFamily: 'Inter', fontSize: 14, color: '#555', fontWeight: 400 }}>
+                Each player pays approximately
+              </span>
+              <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 20, color: '#1a1a1a' }}>
+                £{perPlayer % 1 === 0 ? perPlayer.toFixed(0) : perPlayer.toFixed(2)}
+              </span>
             </div>
           )}
+        </FormSection>
 
+        {/* ── Visibility ────────────────────────────────────────────── */}
+        <FormSection title="Who can see this game?">
+          <fieldset style={{ border: 'none', padding: 0 }}>
+            <legend className="sr-only">Game visibility</legend>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {VIS_OPTS.map(({ key, label, description }) => {
+                const isActive = visibility === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    onClick={() => setVisibility(key)}
+                    className={`vis-card text-left${isActive ? ' vis-active' : ''}`}
+                    style={{
+                      padding: '16px 18px',
+                      borderRadius: 14,
+                      border: `1.5px solid ${isActive ? '#042b2b' : 'rgba(0,0,0,0.08)'}`,
+                      backgroundColor: isActive ? 'rgba(4,43,43,0.05)' : 'rgba(0,0,0,0.02)',
+                      width: '100%',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                      {/* Radio dot */}
+                      <div
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          border: `2px solid ${isActive ? '#042b2b' : '#bbb'}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          transition: 'border-color 150ms ease',
+                        }}
+                        aria-hidden="true"
+                      >
+                        {isActive && (
+                          <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#042b2b' }} />
+                        )}
+                      </div>
+                      <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 15, color: '#1a1a1a' }}>
+                        {label}
+                      </span>
+                    </div>
+                    <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#666', lineHeight: 1.5, marginLeft: 26, fontWeight: 400 }}>
+                      {description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        </FormSection>
+
+        {/* ── Actions ───────────────────────────────────────────────── */}
+        <div style={{ paddingTop: 40, paddingBottom: 40 }}>
           {error && (
-            <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#d4183d', backgroundColor: 'rgba(212,24,61,0.08)', padding: '10px 14px', borderRadius: 10 }}>
+            <div
+              role="alert"
+              aria-live="assertive"
+              style={{
+                fontFamily: 'Inter',
+                fontSize: 14,
+                color: '#c8102e',
+                backgroundColor: 'rgba(200,16,46,0.06)',
+                padding: '12px 16px',
+                borderRadius: 12,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 8,
+              }}
+            >
+              <span aria-hidden="true" style={{ flexShrink: 0 }}>⚠</span>
               {error}
             </div>
           )}
 
-          <div className="pt-2">
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full py-4 rounded-full mb-3"
-              style={{ backgroundColor: '#042b2b', color: '#F0EDE6', fontFamily: 'Inter', fontWeight: 500, fontSize: 16, opacity: loading ? 0.6 : 1 }}
-            >
-              {loading ? 'Posting…' : 'Post Game'}
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              className="w-full py-3"
-              style={{ fontFamily: 'Inter', fontSize: 14, color: '#999', backgroundColor: 'transparent', fontWeight: 400 }}
-            >
-              Cancel
-            </button>
-          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn-primary"
+            style={{
+              width: '100%',
+              minHeight: 52,
+              backgroundColor: '#042b2b',
+              color: '#F0EDE6',
+              fontFamily: 'Inter',
+              fontWeight: 600,
+              fontSize: 16,
+              borderRadius: 50,
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              marginBottom: 16,
+              opacity: loading ? 0.6 : 1,
+            }}
+            aria-busy={loading}
+          >
+            {loading ? 'Posting…' : 'Post Game'}
+          </button>
+
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'center',
+              fontFamily: 'Inter',
+              fontSize: 14,
+              color: '#666',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '10px 0',
+            }}
+          >
+            Cancel
+          </button>
         </div>
 
+      </div>
     </div>
   );
 }
 
+const headingStyle: React.CSSProperties = {
+  fontFamily: 'Inter',
+  fontWeight: 700,
+  fontSize: 42,
+  color: '#1a1a1a',
+  letterSpacing: '-0.03em',
+  lineHeight: 1.1,
+  marginBottom: 32,
+};
+
 const labelStyle: React.CSSProperties = {
-  fontFamily: 'Inter', fontSize: 13, color: '#999',
-  display: 'block', marginBottom: 10, fontWeight: 400,
+  fontFamily: 'Inter',
+  fontSize: 15,
+  color: '#2a2a2a',
+  display: 'block',
+  marginBottom: 8,
+  fontWeight: 500,
+};
+
+const helperStyle: React.CSSProperties = {
+  fontFamily: 'Inter',
+  fontSize: 13,
+  color: '#666',
+  marginTop: 6,
+  fontWeight: 400,
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 16px', borderRadius: 12,
-  backgroundColor: 'rgba(0,0,0,0.03)', border: 'none',
-  fontFamily: 'Inter', fontSize: 15, color: '#1a1a1a', fontWeight: 400,
+  width: '100%',
+  padding: '13px 16px',
+  borderRadius: 12,
+  backgroundColor: 'rgba(0,0,0,0.03)',
+  border: '1px solid transparent',
+  fontFamily: 'Inter',
+  fontSize: 15,
+  color: '#1a1a1a',
+  fontWeight: 400,
+  minHeight: 48,
 };

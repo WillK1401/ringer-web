@@ -10,8 +10,8 @@ const NAV = [
 ];
 
 export function SideNav() {
-  const navigate   = useNavigate();
-  const location   = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <aside
@@ -33,7 +33,7 @@ export function SideNav() {
       </div>
 
       {/* Nav items */}
-      <nav style={{ flex: 1 }}>
+      <nav style={{ flex: 1, padding: '0 12px' }} aria-label="Main navigation">
         {NAV.map(({ icon: Icon, label, path }) => {
           const isActive = path === '/'
             ? location.pathname === '/' || location.pathname.startsWith('/game/')
@@ -42,22 +42,27 @@ export function SideNav() {
             <button
               key={path}
               onClick={() => navigate(path)}
-              className="w-full flex items-center gap-3"
+              aria-current={isActive ? 'page' : undefined}
+              className={`nav-item w-full flex items-center gap-3${isActive ? ' active' : ''}`}
               style={{
-                padding: '11px 28px',
+                padding: '11px 16px',
                 background: isActive ? 'rgba(4,43,43,0.07)' : 'transparent',
                 color: isActive ? '#042b2b' : '#888',
                 fontFamily: 'Inter',
-                fontWeight: isActive ? 500 : 400,
+                fontWeight: isActive ? 600 : 400,
                 fontSize: 15,
                 letterSpacing: '-0.01em',
                 border: 'none',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'background 0.1s',
+                marginBottom: 2,
               }}
             >
-              <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
+              <Icon
+                size={18}
+                strokeWidth={isActive ? 2 : 1.5}
+                aria-hidden="true"
+              />
               {label}
             </button>
           );
