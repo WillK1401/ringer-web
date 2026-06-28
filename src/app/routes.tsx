@@ -1,5 +1,7 @@
-import { createBrowserRouter, Outlet } from 'react-router';
+import { createBrowserRouter, Outlet, useLocation } from 'react-router';
+import { AnimatePresence } from 'framer-motion';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { PageTransition } from '../components/PageTransition';
 import { GamesList } from '../screens/GamesList';
 import { GameDetail } from '../screens/GameDetail';
 import { NearMeMap } from '../screens/NearMeMap';
@@ -19,13 +21,18 @@ import { SideNav } from '../components/SideNav';
 import { BottomNav } from '../components/BottomNav';
 
 function ProtectedLayout() {
+  const location = useLocation();
   return (
     <>
       <SignedIn>
         <div className="flex min-h-screen" style={{ backgroundColor: '#F0EDE6' }}>
           <SideNav />
-          <div className="flex-1 min-w-0">
-            <Outlet />
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <PageTransition key={location.pathname}>
+                <Outlet />
+              </PageTransition>
+            </AnimatePresence>
           </div>
         </div>
         <BottomNav />
