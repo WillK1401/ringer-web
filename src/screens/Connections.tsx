@@ -34,7 +34,7 @@ export function Connections() {
         <button onClick={() => navigate('/profile')} className="flex items-center gap-1 mb-4">
           <ArrowLeft size={20} strokeWidth={1.5} color="#1a1a1a" />
         </button>
-        <h1 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 28, color: '#1a1a1a', letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 42, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
           Connections
         </h1>
       </div>

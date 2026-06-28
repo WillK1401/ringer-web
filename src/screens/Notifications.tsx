@@ -121,7 +121,7 @@ export function Notifications() {
     <div className="flex flex-col" style={{ height: '100%', background: BG }}>
       <header className="flex items-end justify-between" style={{ padding: '10px 24px 14px', flexShrink: 0 }}>
         <div className="flex items-center" style={{ gap: 10 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: FG, margin: 0 }}>Notifications</h1>
+          <h1 style={{ fontSize: 42, fontWeight: 700, letterSpacing: '-0.03em', color: FG, margin: 0, lineHeight: 1.1 }}>Notifications</h1>
           {unread > 0 && (
             <div
               className="flex items-center justify-center"

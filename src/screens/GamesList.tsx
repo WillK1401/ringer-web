@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { MapPin } from 'lucide-react';
 import { AvatarStack } from '../components/AvatarStack';
 import { Spinner } from '../components/Spinner';
 import { gamesApi } from '../lib/api';
@@ -38,7 +39,13 @@ function EmptyState({ onPost }: { onPost: () => void }) {
       role="status"
       aria-label="No games available"
     >
-      <div style={{ fontSize: 48, marginBottom: 20, lineHeight: 1 }} aria-hidden="true">⚽</div>
+      <div
+        className="flex items-center justify-center rounded-full"
+        style={{ width: 64, height: 64, backgroundColor: 'rgba(4,43,43,0.07)', marginBottom: 20 }}
+        aria-hidden="true"
+      >
+        <MapPin size={28} strokeWidth={1.5} color="#042b2b" />
+      </div>
       <h2 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 22, color: '#1a1a1a', marginBottom: 10, letterSpacing: '-0.02em' }}>
         No games nearby yet
       </h2>
@@ -97,15 +104,8 @@ export function GamesList() {
   return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
 
-      {/* Header */}
-      <div className="px-6 pt-6 pb-4 flex items-center justify-between">
-        <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 22, color: '#042b2b', letterSpacing: '-0.01em' }}>
-          ringer.
-        </div>
-      </div>
-
       {/* Title */}
-      <div className="px-6 pb-8">
+      <div className="px-6 pt-10 pb-8">
         <h1 style={{
           fontFamily: 'Inter',
           fontWeight: 700,

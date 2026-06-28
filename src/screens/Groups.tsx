@@ -57,7 +57,7 @@ export function Groups() {
   return (
     <div className="flex flex-col" style={{ height: '100%', background: BG }}>
       <header className="flex items-center justify-between" style={{ padding: '10px 24px 14px', flexShrink: 0 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: FG, margin: 0 }}>Groups</h1>
+        <h1 style={{ fontSize: 42, fontWeight: 700, letterSpacing: '-0.03em', color: FG, margin: 0, lineHeight: 1.1 }}>Groups</h1>
         <button
           onClick={() => navigate('/groups/new')}
           className="flex items-center justify-center"

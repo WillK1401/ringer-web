@@ -15,7 +15,7 @@ export function ChatList() {
   return (
     <div className="min-h-screen pb-[90px]" style={{ backgroundColor: '#F0EDE6' }}>
       <div className="px-6 pb-5" style={{ paddingTop: 48 }}>
-        <h1 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 28, color: '#1a1a1a', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 42, color: '#1a1a1a', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
           Chat
         </h1>
       </div>
@@ -24,11 +24,10 @@ export function ChatList() {
         <Spinner />
       ) : chats.length === 0 ? (
         <div className="px-6 pt-8 flex flex-col items-center text-center">
-          <div style={{ fontSize: 40, marginBottom: 16 }}>💬</div>
-          <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 16, color: '#1a1a1a', marginBottom: 8 }}>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 22, color: '#1a1a1a', marginBottom: 10, letterSpacing: '-0.02em' }}>
             No active chats
-          </div>
-          <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#999', lineHeight: 1.6, maxWidth: 260, marginBottom: 32 }}>
+          </h2>
+          <div style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', lineHeight: 1.6, maxWidth: 260, marginBottom: 32 }}>
             When you join or post a game, the chat thread will appear here.
           </div>
           <button
@@ -54,7 +53,9 @@ export function ChatList() {
                 <div className="flex items-center gap-3">
                   <div className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ width: 40, height: 40, backgroundColor: chat.role === 'organiser' ? '#042b2b' : 'rgba(4,43,43,0.1)' }}>
-                    <span style={{ fontSize: 18 }}>⚽</span>
+                    <span style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 13, color: chat.role === 'organiser' ? '#F0EDE6' : '#042b2b', letterSpacing: '-0.01em' }}>
+                      {chat.venue.slice(0, 2).toUpperCase()}
+                    </span>
                   </div>
                   <div>
                     <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 14, color: '#1a1a1a', marginBottom: 2 }}>
