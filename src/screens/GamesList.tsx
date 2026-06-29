@@ -103,9 +103,10 @@ export function GamesList() {
 
   return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
 
       {/* Title */}
-      <div className="px-6 pt-10 pb-8">
+      <div className="pt-10 pb-8">
         <h1 style={{
           fontFamily: 'Inter',
           fontWeight: 700,
@@ -119,7 +120,7 @@ export function GamesList() {
       </div>
 
       {/* Filters */}
-      <div className="px-6 pb-8 flex gap-3" role="group" aria-label="Filter games">
+      <div className="pb-8 flex gap-3" role="group" aria-label="Filter games">
         <div style={{ position: 'relative', flex: 1 }}>
           <label htmlFor="filter-day" className="sr-only">Filter by date</label>
           <select
@@ -176,7 +177,7 @@ export function GamesList() {
       {loading && <Spinner />}
 
       {error && (
-        <div className="px-6" role="alert">
+        <div role="alert">
           <div style={{
             fontFamily: 'Inter',
             fontSize: 14,
@@ -209,7 +210,7 @@ export function GamesList() {
               <li key={game.id}>
                 <button
                   onClick={() => navigate(`/game/${game.id}`)}
-                  className="game-card w-full px-6 text-left"
+                  className="game-card w-full text-left"
                   aria-label={`${game.venue}, ${formatKickoff(game.kickoffAt)}, £${priceGBP} per player, ${filled} of ${total} spots filled`}
                 >
                   <div
@@ -249,6 +250,7 @@ export function GamesList() {
         </ul>
       )}
 
+      </div>{/* /max-width container */}
     </div>
   );
 }

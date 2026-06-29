@@ -30,14 +30,13 @@ export function Connections() {
 
   return (
     <div className="min-h-screen pb-[90px]" style={{ backgroundColor: '#F0EDE6' }}>
-      <div className="px-6 pb-4" style={{ paddingTop: 48 }}>
-        <button onClick={() => navigate('/profile')} className="flex items-center gap-1 mb-4">
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 0' }}>
+        <button onClick={() => navigate('/profile')} className="flex items-center gap-1 mb-4" aria-label="Back to Profile">
           <ArrowLeft size={20} strokeWidth={1.5} color="#1a1a1a" />
         </button>
-        <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 42, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+        <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 42, color: '#1a1a1a', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 32 }}>
           Connections
         </h1>
-      </div>
 
       {/* Tabs */}
       <div className="px-6 mb-5">
@@ -126,6 +125,7 @@ export function Connections() {
         </div>
       )}
 
+      </div>{/* /max-width */}
     </div>
   );
 }
