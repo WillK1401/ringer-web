@@ -45,6 +45,7 @@ export const gamesApi = {
     return request<any[]>(`/games${qs ? `?${qs}` : ''}`);
   },
   getGame: (id: string) => request<{ game: any; players: any[] }>(`/games/${id}`),
+  getMyGames: () => request<{ hosting: any[]; playing: any[] }>('/games/mine'),
   postGame: (data: any) => request<any>('/games', { method: 'POST', body: JSON.stringify(data) }),
   joinGame: (id: string) => request<any>(`/games/${id}/join`, { method: 'POST' }),
   cancelGame: (id: string, reason?: string) =>

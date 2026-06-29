@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, MessageCircle, Trash2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Trash2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useUser } from '@clerk/clerk-react';
 import { Spinner } from '../components/Spinner';
@@ -15,9 +15,10 @@ export function GameDetail() {
   const navigate = useNavigate();
   const { id }   = useParams<{ id: string }>();
   const { user: clerkUser } = useUser();
-  const [data,       setData]       = useState<{ game: any; players: any[] } | null>(null);
-  const [myProfile,  setMyProfile]  = useState<any>(null);
-  const [loading,    setLoading]    = useState(true);
+  const [data,        setData]        = useState<{ game: any; players: any[] } | null>(null);
+  const [myProfile,   setMyProfile]   = useState<any>(null);
+  const [organiser,   setOrganiser]   = useState<any>(null);
+  const [loading,     setLoading]     = useState(true);
   const [state,      setState]      = useState<State>('idle');
   const [errorMsg,   setErrorMsg]   = useState('');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -31,6 +32,9 @@ export function GameDetail() {
     ]).then(([gameData, profile]) => {
       setData(gameData);
       setMyProfile(profile);
+      if (gameData?.game?.organiserId) {
+        usersApi.getUser(gameData.game.organiserId).then(setOrganiser).catch(() => {});
+      }
     }).finally(() => setLoading(false));
   }, [id]);
 
@@ -192,6 +196,35 @@ export function GameDetail() {
             </div>
           ))}
         </div>
+
+        {/* Trust Panel */}
+        {!isOrganiser && (
+          <section aria-label="Organiser" style={{ paddingBottom: 40 }}>
+            <h2 style={{ ...sectionHeading, marginBottom: 16 }}>Organiser</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.04)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(4,43,43,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: '#042b2b', letterSpacing: '-0.01em' }}>
+                  {(organiser?.displayName ?? game?.venue ?? '?').slice(0, 2).toUpperCase()}
+                </span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 15, color: '#1a1a1a', marginBottom: 2 }}>
+                  {organiser?.displayName ?? 'Organiser'}
+                </div>
+                <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#666' }}>
+                  {organiser?.handle ? `@${organiser.handle}` : ''}
+                  {organiser?.gamesPlayed ? `${organiser.handle ? ' · ' : ''}${organiser.gamesPlayed} games played` : ''}
+                  {!organiser?.handle && !organiser?.gamesPlayed ? 'Organising this game' : ''}
+                </div>
+              </div>
+              {organiser?.stripeOnboarded && (
+                <div title="Verified organiser">
+                  <ShieldCheck size={18} strokeWidth={1.5} color="#042b2b" aria-label="Verified organiser" />
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Squad */}
         <section aria-label="Squad" style={{ paddingBottom: 40 }}>

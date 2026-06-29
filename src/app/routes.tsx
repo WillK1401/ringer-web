@@ -17,6 +17,7 @@ import { UserProfile } from '../screens/UserProfile';
 import { Notifications } from '../screens/Notifications';
 import { Groups } from '../screens/Groups';
 import { GroupDetail } from '../screens/GroupDetail';
+import { MyGames } from '../screens/MyGames';
 import { SideNav } from '../components/SideNav';
 import { BottomNav } from '../components/BottomNav';
 
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
       { path: '/connections',    Component: Connections },
       { path: '/users/:id',      Component: UserProfile },
       { path: '/notifications',  Component: Notifications },
+      { path: '/games',           Component: MyGames },
       { path: '/groups',         Component: Groups },
       { path: '/groups/:id',     Component: GroupDetail },
     ],

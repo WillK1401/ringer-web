@@ -32,6 +32,72 @@ function formatKickoff(dateVal: string | Date): string {
   return `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${formatTime(dateVal)}`;
 }
 
+function GameCard({ game, navigate }: { game: any; navigate: (path: string) => void }) {
+  const filled    = (game.confirmedPlayers?.length ?? 0) + 1;
+  const total     = game.playerCount ?? 10;
+  const priceGBP  = Math.round((game.costPerPlayer ?? 0) / 100);
+  const initials  = (game.confirmedPlayers || []).map((p: any) =>
+    typeof p === 'string' ? p.slice(0, 2).toUpperCase() : (p.displayName?.slice(0, 2).toUpperCase() ?? '??')
+  );
+  const spotsLeft = total - filled;
+  const isNetwork = game.accessTier === 'first' || game.accessTier === 'organiser';
+
+  return (
+    <button
+      onClick={() => navigate(`/game/${game.id}`)}
+      className="game-card w-full text-left"
+      aria-label={`${game.venue}, ${formatKickoff(game.kickoffAt)}, £${priceGBP} per player, ${filled} of ${total} spots filled`}
+    >
+      <div style={{ paddingTop: 20, paddingBottom: 20, borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 20, color: '#1a1a1a', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+            {game.venue}
+          </div>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 18, color: '#1a1a1a', flexShrink: 0, marginLeft: 12 }}>
+            £{priceGBP}
+          </div>
+        </div>
+        <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400, marginBottom: 14 }}>
+          {formatKickoff(game.kickoffAt)}{game.area ? ` · ${game.area}` : ''}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AvatarStack initials={initials} max={3} size={28} />
+            <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#666', fontWeight: 400 }}>
+              {filled}/{total}
+              {spotsLeft <= 3 && spotsLeft > 0 && (
+                <span style={{ color: '#c8102e', marginLeft: 6, fontWeight: 500 }}>· {spotsLeft} left</span>
+              )}
+            </div>
+          </div>
+          {isNetwork && (
+            <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 500, color: '#042b2b', backgroundColor: 'rgba(4,43,43,0.08)', padding: '3px 10px', borderRadius: 999 }}>
+              In your network
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function GameSection({ label, games, navigate }: { label: string; games: any[]; navigate: (path: string) => void }) {
+  return (
+    <section style={{ marginBottom: 40 }}>
+      <h2 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 13, color: '#666', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>
+        {label}
+      </h2>
+      <ul style={{ listStyle: 'none' }}>
+        {games.map((game: any) => (
+          <li key={game.id}>
+            <GameCard game={game} navigate={navigate} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function EmptyState({ onPost }: { onPost: () => void }) {
   return (
     <div
@@ -101,6 +167,11 @@ export function GamesList() {
         return true;
       });
 
+  const networkGames = games.filter(g => g.accessTier === 'first' || g.accessTier === 'second' || g.accessTier === 'organiser');
+  const nearbyGames  = games.filter(g => g.accessTier === 'public');
+  const hasSections  = !loading && !error && networkGames.length > 0 && nearbyGames.length > 0;
+  const singleSection = !loading && !error && games.length > 0 && !hasSections;
+
   return (
     <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
@@ -115,7 +186,7 @@ export function GamesList() {
           lineHeight: 1.1,
           letterSpacing: '-0.03em',
         }}>
-          Nearby<br />Games
+          Discover
         </h1>
       </div>
 
@@ -195,59 +266,19 @@ export function GamesList() {
         <EmptyState onPost={() => navigate('/post')} />
       )}
 
-      {!loading && games.length > 0 && (
-        <ul style={{ listStyle: 'none' }} aria-label="Games list">
-          {games.map((game: any, i: number) => {
-            const filled   = (game.confirmedPlayers?.length ?? 0) + 1;
-            const total    = game.playerCount ?? 10;
-            const priceGBP = Math.round((game.costPerPlayer ?? 0) / 100);
-            const initials = (game.confirmedPlayers || []).map((p: any) =>
-              p.displayName?.slice(0, 2).toUpperCase() ?? '??'
-            );
-            const spotsLeft = total - filled;
+      {hasSections && (
+        <>
+          <GameSection label="Your network" games={networkGames} navigate={navigate} />
+          <GameSection label="Nearby" games={nearbyGames} navigate={navigate} />
+        </>
+      )}
 
-            return (
-              <li key={game.id}>
-                <button
-                  onClick={() => navigate(`/game/${game.id}`)}
-                  className="game-card w-full text-left"
-                  aria-label={`${game.venue}, ${formatKickoff(game.kickoffAt)}, £${priceGBP} per player, ${filled} of ${total} spots filled`}
-                >
-                  <div
-                    style={{
-                      paddingTop: i === 0 ? 0 : 20,
-                      paddingBottom: 20,
-                      borderBottom: i < games.length - 1 ? '1px solid rgba(0,0,0,0.07)' : 'none',
-                    }}
-                  >
-                    <div style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 20, color: '#1a1a1a', lineHeight: 1.3, letterSpacing: '-0.01em', marginBottom: 4 }}>
-                      {game.venue}
-                    </div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400, marginBottom: 16 }}>
-                      {formatKickoff(game.kickoffAt)}{game.area ? ` · ${game.area}` : ''}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <AvatarStack initials={initials} max={3} size={28} />
-                        <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#666', fontWeight: 400 }}>
-                          {filled}/{total}
-                          {spotsLeft <= 3 && spotsLeft > 0 && (
-                            <span style={{ color: '#c8102e', marginLeft: 6, fontWeight: 500 }}>
-                              · {spotsLeft} left
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 18, color: '#1a1a1a' }}>
-                        £{priceGBP}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      {singleSection && (
+        <GameSection
+          label={networkGames.length > 0 ? 'Your network' : 'Nearby'}
+          games={games}
+          navigate={navigate}
+        />
       )}
 
       </div>{/* /max-width container */}
