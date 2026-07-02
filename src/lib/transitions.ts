@@ -42,7 +42,7 @@ export const pageVariants: Record<string, Variants> = {
   },
 };
 
-const TAB_PATHS = new Set(['/', '/groups', '/notifications', '/profile', '/connections', '/chat', '/map']);
+const TAB_PATHS = new Set(['/', '/network', '/gather', '/notifications', '/profile', '/groups', '/connections', '/chat', '/map']);
 
 export function resolveVariantKey(
   navType: string,

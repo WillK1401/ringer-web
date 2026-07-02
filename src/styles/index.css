@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -99,10 +100,8 @@ body {
    already do this, but belt-and-braces) */
 :focus:not(:focus-visible) { outline: none; }
 
-/* ── Desktop: remove bottom-nav padding ─────────────────────────────── */
-@media (min-width: 768px) {
-  .pb-\[80px\] { padding-bottom: 0 !important; }
-}
+/* Tab bar is present on every viewport in the iOS-first shell, so the
+   bottom padding on screens stays at all sizes. */
 
 /* ── Base resets ─────────────────────────────────────────────────────── */
 input, button, textarea, select {
@@ -185,4 +184,43 @@ button:focus { outline: none; }
 .filter-select:focus-visible {
   border-color: var(--green) !important;
   box-shadow: 0 0 0 3px rgba(4,43,43,0.12);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CORE EXPERIENCES — new iOS design language (Claude Design, July 2026)
+   Scoped under .rx (Ringer Experience) so legacy screens are untouched.
+   ══════════════════════════════════════════════════════════════════════ */
+.rx {
+  /* Colour */
+  --rx-green:        #1C7C54;
+  --rx-green-deep:   #0E3B29;
+  --rx-green-tint:   #EAF3ED;
+  --rx-green-live:   #3FBF77;
+  --rx-paper:        #FBFAF7;
+  --rx-card:         #F3EEE4;
+  --rx-chip:         #F1EDE5;
+  --rx-panel:        #F7F5F0;
+  --rx-ink:          #211F1C;
+  --rx-ink-soft:     #3A362F;
+  --rx-body:         #4A453E;
+  --rx-muted:        #6B665E;
+  --rx-faint:        #8A857C;
+  --rx-ghost:        #A39E94;
+  --rx-hairline:     #EFECE6;
+  --rx-clay:         #B0714F;
+
+  font-family: 'Schibsted Grotesk', system-ui, sans-serif;
+  color: var(--rx-ink);
+  background: var(--rx-paper);
+  -webkit-font-smoothing: antialiased;
+}
+.rx .serif {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+}
+.rx button { font-family: inherit; }
+.rx .scr::-webkit-scrollbar { width: 0; height: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rx * { animation: none !important; transition: none !important; }
 }
