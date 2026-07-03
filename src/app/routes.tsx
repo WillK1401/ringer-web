@@ -5,6 +5,8 @@ import { PageTransition } from '../components/PageTransition';
 import { Discover } from '../screens/rx/Discover';
 import { Network } from '../screens/rx/Network';
 import { Gather } from '../screens/rx/Gather';
+import { Activity } from '../screens/rx/Activity';
+import { SportingLife } from '../screens/rx/SportingLife';
 import { GameDetail } from '../screens/GameDetail';
 import { NearMeMap } from '../screens/NearMeMap';
 import { PostGame } from '../screens/PostGame';
@@ -59,18 +61,20 @@ export const router = createBrowserRouter([
     element: <ProtectedLayout />,
     children: [
       // Core experiences
-      { path: '/',        Component: Discover },
-      { path: '/network', Component: Network },
-      { path: '/gather',  Component: Gather },
+      { path: '/',         Component: Discover },
+      { path: '/network',  Component: Network },
+      { path: '/gather',   Component: Gather },
+      { path: '/activity', Component: Activity },
+      { path: '/profile',  Component: SportingLife },
 
-      // Existing screens (Inbox, You, and legacy flows)
+      // Existing screens (settings and legacy flows)
       { path: '/onboarding',     Component: Onboarding },
       { path: '/game/:id',       Component: GameDetail },
       { path: '/map',            Component: NearMeMap },
       { path: '/post',           Component: PostGame },
       { path: '/chat',           Component: ChatList },
       { path: '/chat/thread',    Component: ChatThread },
-      { path: '/profile',        Component: Profile },
+      { path: '/settings',       Component: Profile },
       { path: '/connections',    Component: Connections },
       { path: '/users/:id',      Component: UserProfile },
       { path: '/notifications',  Component: Notifications },

@@ -47,8 +47,8 @@ export function TabBar() {
   const isDiscover = pathname === '/' || pathname.startsWith('/game/');
   const isNetwork  = pathname.startsWith('/network') || pathname.startsWith('/connections') || pathname.startsWith('/users/');
   const isGather   = pathname.startsWith('/gather');
-  const isInbox    = pathname.startsWith('/notifications') || pathname.startsWith('/chat');
-  const isYou      = pathname.startsWith('/profile');
+  const isActivity = pathname.startsWith('/activity') || pathname.startsWith('/notifications') || pathname.startsWith('/chat');
+  const isYou      = pathname.startsWith('/profile') || pathname.startsWith('/settings');
 
   const label = (text: string, active: boolean) => (
     <span style={{ fontSize: 10.5, fontWeight: active ? 600 : 500, color: active ? G : GHOST }}>{text}</span>
@@ -85,9 +85,9 @@ export function TabBar() {
         </div>
         {isGather && label('Gather', true)}
       </button>
-      <button onClick={() => navigate('/notifications')} aria-label="Inbox" aria-current={isInbox ? 'page' : undefined} style={itemStyle}>
-        <InboxIcon active={isInbox} />
-        {label('Inbox', isInbox)}
+      <button onClick={() => navigate('/activity')} aria-label="Activity" aria-current={isActivity ? 'page' : undefined} style={itemStyle}>
+        <InboxIcon active={isActivity} />
+        {label('Activity', isActivity)}
       </button>
       <button onClick={() => navigate('/profile')} aria-label="You" aria-current={isYou ? 'page' : undefined} style={itemStyle}>
         <YouIcon active={isYou} />

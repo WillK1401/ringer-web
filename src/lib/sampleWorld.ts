@@ -138,3 +138,125 @@ export const GATHER = {
   ],
   discovery: [P.kyle, P.rosa, P.tara],
 };
+
+// ── Sporting Life (You tab) ─────────────────────────────────────────────
+
+export const ME = {
+  name: 'Will Sutton',
+  init: 'W',
+  color: '#5B7A6E',
+  city: 'Toronto',
+  since: 'on Ringer since 2025',
+  oneLiner: 'Wednesday football. Sunday tennis.',
+  journeyLine: 'Eight months. One sport became three.',
+};
+
+export interface Trait {
+  id: string;
+  label: string;
+  detail: string;
+}
+
+export const TRAITS: Trait[] = [
+  { id: 't1', label: 'Plays Football & Padel', detail: 'Will plays football every Wednesday and picked up padel six weeks ago through his network.' },
+  { id: 't2', label: 'Wednesday Regular', detail: "Hasn't missed a Wednesday football session in 11 weeks straight." },
+  { id: 't3', label: 'Usually Organises', detail: "Will has hosted 28 games — usually stepping in when Marcus can't make it." },
+  { id: 't4', label: 'Competitive but Social', detail: 'Regulars describe his games as competitive on the pitch, relaxed after — always a pint at the Foxes.' },
+  { id: 't5', label: 'Loves Trying New Sports', detail: 'Padel this year, tennis last year — Will tries something new almost every season.' },
+];
+
+export const ROUTINE = [
+  { day: 'Wed', time: '7:30',  title: 'Wednesday Football', sub: 'Trinity Bellwoods · organises sometimes', color: '#B0714F' },
+  { day: 'Sun', time: '10:00', title: 'Sunday Tennis',      sub: 'High Park · with Sofia',                  color: '#8E7BA8' },
+  { day: 'Sat', time: '10:00', title: 'Padel (new)',        sub: 'Padel Haus · every other week',           color: '#A8935B' },
+];
+
+export const MY_COMMUNITIES = [
+  { name: 'Wednesday Regulars',  color: '#B0714F' },
+  { name: 'High Park Tennis',    color: '#8E7BA8' },
+  { name: 'North Toronto Padel', color: '#A8935B' },
+];
+
+export const TRUSTED_BY = [
+  { value: '47', label: 'played with' },
+  { value: '28', label: 'games hosted' },
+  { value: '14', label: 'people introduced' },
+];
+
+export const JOURNEY = [
+  { date: 'Last October', title: 'Joined Ringer',          body: 'Moved to Toronto and joined The Wednesday Regulars.',          color: '#B0714F', init: 'W'  },
+  { date: 'October',      title: 'Met Marcus',             body: "Captained Will's first game — became his anchor in the city.", color: '#B0714F', init: 'MB' },
+  { date: 'December',     title: 'Introduced to running',  body: 'Priya brought him into the Saturday Run Club.',                color: '#6E9A82', init: 'PN' },
+  { date: 'February',     title: 'Started tennis',         body: "Sofia needed a fourth — Will's barely missed a Thursday since.", color: '#8E7BA8', init: 'SR' },
+  { date: '6 weeks ago',  title: 'Tried padel',            body: "His first new sport in years, through Leon's group.",          color: '#A8935B', init: 'LT' },
+];
+
+export const MEMORIES = [
+  { label: 'First Wednesday game', color: '#B0714F' },
+  { label: 'Run Club 10k',         color: '#6E9A82' },
+  { label: 'First padel win',      color: '#A8935B' },
+];
+
+// ── Activity (groups home) ──────────────────────────────────────────────
+
+export interface PendingAction {
+  id: string;
+  init: string;
+  color: string;
+  title: string;
+  sub: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+}
+
+export const PENDING_ACTIONS: PendingAction[] = [
+  { id: 'p1', init: 'MB', color: '#B0714F', title: 'Marcus needs 1 more for Wednesday', sub: 'Trinity Bellwoods · 7:30 PM',        primaryLabel: 'Join',    secondaryLabel: 'Not tonight' },
+  { id: 'p2', init: 'SR', color: '#8E7BA8', title: 'Confirm tennis with Sofia',          sub: 'Thursday · High Park · 6:00 PM',    primaryLabel: 'Confirm', secondaryLabel: 'Change time' },
+];
+
+export interface ActivityGroup {
+  id: string;
+  name: string;
+  init: string;
+  color: string;
+  last: string;
+  time: string;
+  unread: boolean;
+}
+
+export const ACTIVITY_GROUPS: ActivityGroup[] = [
+  { id: 'wed',    name: 'Wednesday Football',  init: 'WF', color: '#B0714F', last: 'Marcus: Pitch is booked, see you at 7:30', time: '6:40', unread: true  },
+  { id: 'tennis', name: 'High Park Tennis',    init: 'HT', color: '#8E7BA8', last: 'Sofia: same court as last week?',          time: 'Tue',  unread: false },
+  { id: 'run',    name: 'Saturday Run Club',   init: 'RC', color: '#6E9A82', last: 'Photos from this week are up',             time: 'Sat',  unread: false },
+  { id: 'padel',  name: 'North Toronto Padel', init: 'NP', color: '#A8935B', last: 'Leon: great session today',                time: 'Mon',  unread: false },
+];
+
+export const GROUP_MESSAGES = [
+  { init: 'MB', color: '#B0714F', name: 'Marcus', time: '6:40 PM', text: 'Pitch is booked, see you all at 7:30' },
+  { init: 'PN', color: '#5B7AA8', name: 'Priya',  time: '6:52 PM', text: 'Running 5 late, save me a spot!' },
+];
+
+export const QUICK_ACTIONS = ["I'm in", 'Running late', "Can't make it", 'Need one more'];
+
+export const GROUP_PHOTOS = ['#B0714F', '#8E7BA8', '#6E9A82', '#A8935B', '#5B7AA8', '#A8635B', '#B0714F', '#6E9A82', '#8E7BA8'];
+
+export const GROUP_HISTORY = [
+  { when: 'Yesterday',      text: '9 players, 3-2 final score, everyone paid on time.' },
+  { when: 'Last Wednesday', text: 'Emma joined for the first time, introduced by Alex.' },
+  { when: '3 weeks ago',    text: 'Rained out — Marcus rescheduled to Thursday.' },
+  { when: 'A month ago',    text: 'Hit 100 sessions together as a group.' },
+];
+
+export const GROUP_PAYMENTS = {
+  stats: [
+    { value: '$72',  label: 'collected'   },
+    { value: '$16',  label: 'outstanding' },
+    { value: '9/11', label: 'paid'        },
+  ],
+  rows: [
+    { init: 'MB', color: '#B0714F', name: 'Marcus', status: 'Paid',          statusColor: '#1C7C54' },
+    { init: 'PN', color: '#5B7AA8', name: 'Priya',  status: 'Paid',          statusColor: '#1C7C54' },
+    { init: 'EL', color: '#A8635B', name: 'Emma',   status: 'Reminder sent', statusColor: '#B0714F' },
+    { init: 'W',  color: '#5B7A6E', name: 'You',    status: 'Paid',          statusColor: '#1C7C54' },
+  ],
+};
