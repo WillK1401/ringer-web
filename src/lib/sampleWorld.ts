@@ -172,9 +172,9 @@ export const ROUTINE = [
 ];
 
 export const MY_COMMUNITIES = [
-  { name: 'Wednesday Regulars',  color: '#B0714F' },
-  { name: 'High Park Tennis',    color: '#8E7BA8' },
-  { name: 'North Toronto Padel', color: '#A8935B' },
+  { name: 'Wednesday Regulars',  color: '#B0714F', groupId: 'wed'    },
+  { name: 'High Park Tennis',    color: '#8E7BA8', groupId: 'tennis' },
+  { name: 'North Toronto Padel', color: '#A8935B', groupId: 'padel'  },
 ];
 
 export const TRUSTED_BY = [

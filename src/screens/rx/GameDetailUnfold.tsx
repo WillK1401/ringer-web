@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 
@@ -16,6 +17,7 @@ const sub = (text: string): React.CSSProperties => ({
 });
 
 export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
+  const navigate = useNavigate();
   const [attOpen, setAttOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
 
@@ -146,14 +148,18 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
           {/* 4 · HOST */}
           <div style={{ marginTop: 30 }}>
             <div style={sub('ghost')}>Your host</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              onClick={() => navigate('/network', { state: { person: 'marcus' } })}
+              aria-label="Open Marcus Bell's sporting world"
+              style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <Avatar person={P.marcus} size={52} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em' }}>Marcus Bell</div>
                 <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>Hosts The Wednesday Regulars</div>
               </div>
               <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 9px', borderRadius: 7 }}>Trusted host</span>
-            </div>
+            </button>
             <div style={{ display: 'flex', gap: 20, marginTop: 16, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)', borderBottom: '1px solid var(--rx-hairline)' }}>
               <div><div style={{ fontSize: 17, fontWeight: 700 }}>120+</div><div style={{ fontSize: 11.5, color: '#9C968C' }}>games hosted</div></div>
               <div><div style={{ fontSize: 17, fontWeight: 700 }}>100%</div><div style={{ fontSize: 11.5, color: '#9C968C' }}>turned up</div></div>

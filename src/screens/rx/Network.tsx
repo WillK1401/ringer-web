@@ -1,10 +1,23 @@
 import { useState } from 'react';
-import { ACTIVE_NOW, CIRCLE, WORLDS } from '../../lib/sampleWorld';
+import { useLocation } from 'react-router';
+import { ACTIVE_NOW, CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 
+const SUGGESTIONS = [
+  { person: PEOPLE.emma,   reason: 'Played alongside you twice · trusted by Marcus' },
+  { person: PEOPLE.sam,    reason: 'Plays with Priya every Thursday · 4 mutuals' },
+  { person: PEOPLE.jordan, reason: 'In The Wednesday Regulars · looking for football' },
+];
+
 export function Network() {
-  const [sel, setSel] = useState<string | null>(null);
+  const location = useLocation();
+  const initialSel = (location.state as { person?: string } | null)?.person ?? null;
+  const [sel, setSel] = useState<string | null>(initialSel && WORLDS[initialSel] ? initialSel : null);
+  const [connected, setConnected] = useState<Set<string>>(new Set());
+  const [inviteSent, setInviteSent] = useState(false);
   const world = sel ? WORLDS[sel] : null;
+
+  const connect = (id: string) => setConnected(prev => new Set(prev).add(id));
 
   if (world) {
     const p = world.person;
@@ -168,8 +181,66 @@ export function Network() {
           })}
         </div>
 
+        {/* GROW YOUR CIRCLE — trusted introductions, never strangers */}
+        <div style={{ marginTop: 34 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 6 }}>
+            Grow your circle
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {SUGGESTIONS.map(({ person, reason }) => {
+              const done = connected.has(person.id);
+              return (
+                <div key={person.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)' }}>
+                  <Avatar person={person} size={48} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{person.first}</div>
+                    <div style={{ fontSize: 12.5, lineHeight: 1.4, color: 'var(--rx-muted)', marginTop: 2 }}>{reason}</div>
+                  </div>
+                  <button
+                    onClick={() => connect(person.id)}
+                    disabled={done}
+                    aria-label={done ? `Connection request sent to ${person.first}` : `Connect with ${person.first}`}
+                    style={{
+                      fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
+                      cursor: done ? 'default' : 'pointer',
+                      ...(done
+                        ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                        : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
+                    }}
+                  >
+                    {done ? 'Sent ✓' : 'Connect'}
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Invite from contacts */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', border: '2px dashed #C2B9A9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#A39A88', flexShrink: 0 }}>+</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Invite from contacts</div>
+                <div style={{ fontSize: 12.5, color: 'var(--rx-muted)', marginTop: 2 }}>Bring someone who isn't on Ringer yet</div>
+              </div>
+              <button
+                onClick={() => setInviteSent(true)}
+                disabled={inviteSent}
+                aria-label="Copy invite link"
+                style={{
+                  fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
+                  cursor: inviteSent ? 'default' : 'pointer',
+                  ...(inviteSent
+                    ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                    : { border: '1.5px solid #D8D2C7', background: 'none', color: 'var(--rx-body)' }),
+                }}
+              >
+                {inviteSent ? 'Copied ✓' : 'Invite'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Memory closer */}
-        <div style={{ marginTop: 30, padding: 22, background: 'var(--rx-card)', borderRadius: 22 }}>
+        <div style={{ marginTop: 20, padding: 22, background: 'var(--rx-card)', borderRadius: 22 }}>
           <div className="serif" style={{ fontSize: 18, lineHeight: 1.5, color: 'var(--rx-body)' }}>
             You've brought three people into this circle yourself — and six you met through football now play tennis with you too.
           </div>

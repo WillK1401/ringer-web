@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router';
 import {
   PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS,
   GROUP_PHOTOS, GROUP_HISTORY, GROUP_PAYMENTS,
@@ -19,10 +20,23 @@ const eyebrow = (color: string): React.CSSProperties => ({
 });
 
 export function Activity() {
-  const [sel, setSel]           = useState<string | null>(null);
+  const location = useLocation();
+  const initialGroup = (location.state as { group?: string } | null)?.group ?? null;
+  const [sel, setSel]           = useState<string | null>(
+    initialGroup && ACTIVITY_GROUPS.some(g => g.id === initialGroup) ? initialGroup : null
+  );
   const [tab, setTab]           = useState<Tab>('messages');
   const [resolved, setResolved] = useState<Set<string>>(new Set());
   const [quickSent, setQuickSent] = useState<string | null>(null);
+  const [draft, setDraft]       = useState('');
+  const [sent, setSent]         = useState<{ text: string; time: string }[]>([]);
+
+  const sendDraft = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setSent(prev => [...prev, { text, time: 'now' }]);
+    setDraft('');
+  };
 
   const pending = PENDING_ACTIONS.filter(p => !resolved.has(p.id));
   const group = sel ? ACTIVITY_GROUPS.find(g => g.id === sel) : null;
@@ -106,6 +120,41 @@ export function Activity() {
                   Sent: "{quickSent}"
                 </div>
               )}
+
+              {/* Your sent messages */}
+              {sent.map((m, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-faint)', marginBottom: 3, textAlign: 'right' }}>You · {m.time}</div>
+                    <div style={{ fontSize: 14.5, lineHeight: 1.4, background: 'var(--rx-green)', color: '#fff', borderRadius: 14, borderTopRightRadius: 4, padding: '10px 14px', display: 'inline-block' }}>{m.text}</div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Composer */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') sendDraft(); }}
+                  placeholder="Message the group…"
+                  aria-label="Message the group"
+                  style={{ flex: 1, fontSize: 14.5, fontFamily: 'inherit', padding: '12px 16px', borderRadius: 99, border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-ink)', outline: 'none' }}
+                />
+                <button
+                  onClick={sendDraft}
+                  disabled={!draft.trim()}
+                  aria-label="Send message"
+                  style={{
+                    width: 44, height: 44, borderRadius: '50%', border: 'none', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: draft.trim() ? 'pointer' : 'default',
+                    background: draft.trim() ? 'var(--rx-green)' : '#E4DFD5',
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
             </div>
           )}
 
@@ -215,7 +264,7 @@ export function Activity() {
           {ACTIVITY_GROUPS.map(g => (
             <button
               key={g.id}
-              onClick={() => { setSel(g.id); setTab('messages'); setQuickSent(null); }}
+              onClick={() => { setSel(g.id); setTab('messages'); setQuickSent(null); setSent([]); setDraft(''); }}
               aria-label={`Open ${g.name}`}
               style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #EEEAE3', borderRadius: 20, padding: 16, cursor: 'pointer' }}
             >

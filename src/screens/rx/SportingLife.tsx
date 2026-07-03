@@ -86,14 +86,19 @@ export function SportingLife() {
           ))}
         </div>
 
-        {/* COMMUNITIES */}
+        {/* COMMUNITIES — each opens its group hub */}
         <div style={eyebrow('var(--rx-ghost)')}>Communities</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 32 }}>
           {MY_COMMUNITIES.map(c => (
-            <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #EEEAE3', borderRadius: 99, padding: '9px 15px 9px 9px' }}>
+            <button
+              key={c.name}
+              onClick={() => navigate('/activity', { state: { group: c.groupId } })}
+              aria-label={`Open ${c.name}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff', border: '1px solid #EEEAE3', borderRadius: 99, padding: '9px 15px 9px 9px', cursor: 'pointer' }}
+            >
               <span style={{ width: 26, height: 26, borderRadius: '50%', background: c.color, flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</span>
-            </div>
+            </button>
           ))}
         </div>
 

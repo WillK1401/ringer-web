@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { GameDetailUnfold } from './GameDetailUnfold';
@@ -6,22 +7,39 @@ import { GameDetailUnfold } from './GameDetailUnfold';
 const P = PEOPLE;
 
 const WEEK = [
-  { dow: 'M', date: '29', play: false },
-  { dow: 'T', date: '30', play: false },
-  { dow: 'W', date: '1',  play: true  },
-  { dow: 'T', date: '2',  play: true  },
-  { dow: 'F', date: '3',  play: false },
-  { dow: 'S', date: '4',  play: true  },
-  { dow: 'S', date: '5',  play: false },
+  { dow: 'M', date: '29', play: false, plan: null },
+  { dow: 'T', date: '30', play: false, plan: null },
+  { dow: 'W', date: '1',  play: true,  plan: null }, // hero carries Wednesday
+  { dow: 'T', date: '2',  play: true,  plan: 'Your Thursday tennis hit · 6:00 with Sofia' },
+  { dow: 'F', date: '3',  play: false, plan: null },
+  { dow: 'S', date: '4',  play: true,  plan: 'Saturday Morning Run Club · 8:00 · The Beaches' },
+  { dow: 'S', date: '5',  play: false, plan: null },
 ];
 
 const DOW_NAMES: Record<string, string> = { M: 'Monday', T: 'Tuesday', W: 'Wednesday', F: 'Friday', S: 'Saturday' };
 
+const ALL_GAMES = [
+  { venue: 'Trinity Bellwoods Park', when: 'Tonight · 7:30',    who: 'Marcus hosts · 4 of your circle',  sport: 'Football'   },
+  { venue: 'High Park Courts',       when: 'Thursday · 6:00',   who: 'Sofia · your usual four',          sport: 'Tennis'     },
+  { venue: 'Padel Haus',             when: 'Saturday · 10:00',  who: "Leon hosts · Priya's group",       sport: 'Padel'      },
+  { venue: 'The Beaches',            when: 'Saturday · 8:00',   who: 'Run Club · you + 9 regulars',      sport: 'Running'    },
+  { venue: 'Christie Pits',          when: 'Sunday · 11:00',    who: 'Open game · 2 mutual connections', sport: 'Basketball' },
+];
+
 export function Discover() {
-  const [joined, setJoined]       = useState(false);
-  const [whyOpen, setWhyOpen]     = useState(false);
-  const [activeDay, setActiveDay] = useState(2);
-  const [expanded, setExpanded]   = useState(false);
+  const navigate = useNavigate();
+  const [joined, setJoined]         = useState(false);
+  const [whyOpen, setWhyOpen]       = useState(false);
+  const [activeDay, setActiveDay]   = useState(2);
+  const [expanded, setExpanded]     = useState(false);
+  const [interested, setInterested] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery]           = useState('');
+
+  const dayPlan = WEEK[activeDay].plan;
+  const results = ALL_GAMES.filter(g =>
+    (g.venue + g.who + g.sport + g.when).toLowerCase().includes(query.toLowerCase())
+  );
 
   if (expanded) {
     return (
@@ -66,6 +84,28 @@ export function Discover() {
             );
           })}
         </div>
+
+        {/* Selected day context — the strip answers, not just decorates */}
+        {activeDay !== 2 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--rx-card)', borderRadius: 14, padding: '12px 16px', marginTop: -12, marginBottom: 26 }}>
+            {dayPlan ? (
+              <>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
+                <span style={{ fontSize: 13.5, color: 'var(--rx-body)' }}>{dayPlan}</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 13.5, color: 'var(--rx-muted)', flex: 1 }}>Nothing planned yet.</span>
+                <button
+                  onClick={() => navigate('/gather')}
+                  style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-green)', cursor: 'pointer', flexShrink: 0, padding: 0 }}
+                >
+                  Gather one ›
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '0 24px 120px' }}>
@@ -194,7 +234,11 @@ export function Discover() {
         <div style={{ marginTop: 36 }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 18 }}>Your communities</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              onClick={() => navigate('/activity', { state: { group: 'wed' } })}
+              aria-label="Open The Wednesday Regulars"
+              style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <div style={{ display: 'flex', flexShrink: 0 }}>
                 <Avatar person={P.marcus} size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
                 <Avatar person={P.priya}  size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
@@ -205,8 +249,12 @@ export function Discover() {
                 <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>You + 24 · meets tonight</div>
               </div>
               <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            </button>
+            <button
+              onClick={() => navigate('/activity', { state: { group: 'tennis' } })}
+              aria-label="Open High Park Tennis"
+              style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <div style={{ display: 'flex', flexShrink: 0 }}>
                 <Avatar person={P.sofia} size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
                 <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#A8635B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 600 }}>+11</div>
@@ -216,7 +264,7 @@ export function Discover() {
                 <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>12 members · 3 games this week</div>
               </div>
               <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -231,15 +279,73 @@ export function Discover() {
                 <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>Leon hosts · 3 of your circle already play</div>
               </div>
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)' }}>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)', marginBottom: 14 }}>
               You said you wanted to try padel. This one's run by someone Priya's played with fourteen times — a soft landing, not a stranger's game.
             </div>
+            <button
+              onClick={() => setInterested(true)}
+              disabled={interested}
+              aria-label={interested ? 'Priya will introduce you' : 'Interested — ask Priya to introduce you'}
+              style={{
+                width: '100%', fontSize: 13.5, fontWeight: 600, padding: 12, borderRadius: 99,
+                cursor: interested ? 'default' : 'pointer',
+                ...(interested
+                  ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                  : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
+              }}
+            >
+              {interested ? "Priya will introduce you ✓" : "I'm interested — ask Priya to intro"}
+            </button>
           </div>
         </div>
 
-        <button style={{ width: '100%', marginTop: 30, background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: '#9C968C', padding: 12, cursor: 'pointer' }}>
-          Search all games
-        </button>
+        {/* SEARCH — secondary, refines rather than replaces */}
+        {searchOpen ? (
+          <div style={{ marginTop: 30 }}>
+            <input
+              autoFocus
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Sport, venue, or person…"
+              aria-label="Search all games"
+              style={{ width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '13px 18px', borderRadius: 99, border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-ink)', outline: 'none', marginBottom: 16 }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {results.map(g => (
+                <button
+                  key={g.venue}
+                  onClick={() => setExpanded(true)}
+                  aria-label={`${g.venue}, ${g.when}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '14px 0', borderTop: '1px solid var(--rx-hairline)', cursor: 'pointer' }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.venue}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2 }}>{g.when} · {g.who}</div>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 10px', borderRadius: 99, flexShrink: 0 }}>{g.sport}</span>
+                </button>
+              ))}
+              {results.length === 0 && (
+                <div style={{ padding: '18px 0', fontSize: 13.5, color: 'var(--rx-muted)', borderTop: '1px solid var(--rx-hairline)' }}>
+                  Nothing matches — try another sport, or gather your own game.
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => { setSearchOpen(false); setQuery(''); }}
+              style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#9C968C', padding: 10, cursor: 'pointer' }}
+            >
+              Close search
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setSearchOpen(true)}
+            style={{ width: '100%', marginTop: 30, background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: '#9C968C', padding: 12, cursor: 'pointer' }}
+          >
+            Search all games
+          </button>
+        )}
       </div>
     </div>
   );
