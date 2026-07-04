@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ME, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
+import { loadProfile, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
 
 const eyebrow = (color: string): React.CSSProperties => ({
   fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -10,35 +10,36 @@ const eyebrow = (color: string): React.CSSProperties => ({
 export function SportingLife() {
   const navigate = useNavigate();
   const [openTrait, setOpenTrait] = useState<string | null>(null);
+  const me = loadProfile();
   const open = TRAITS.find(t => t.id === openTrait) ?? null;
 
   return (
     <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ padding: '6px 24px 120px' }}>
 
-        {/* Settings — quiet link to account/payment settings */}
+        {/* Edit profile */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button
-            onClick={() => navigate('/settings')}
-            aria-label="Account settings"
-            style={{ background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '4px 0' }}
+            onClick={() => navigate('/profile/edit')}
+            aria-label="Edit profile"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #E7E2D9', fontSize: 13, fontWeight: 600, color: 'var(--rx-ink-soft)', cursor: 'pointer', padding: '8px 14px', borderRadius: 99 }}
           >
-            Settings
+            Edit profile
           </button>
         </div>
 
         {/* HERO — identity, one line, no bio */}
         <div style={{ textAlign: 'center', padding: '6px 0 26px' }}>
           <div style={{
-            width: 92, height: 92, borderRadius: '50%', background: ME.color, color: '#fff',
+            width: 92, height: 92, borderRadius: '50%', background: me.color, color: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 32, fontWeight: 600, margin: '0 auto 16px',
           }}>
-            {ME.init}
+            {me.init}
           </div>
-          <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>{ME.name}</h2>
-          <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginBottom: 10 }}>{ME.city} · {ME.since}</div>
-          <div className="serif" style={{ fontSize: 17, color: 'var(--rx-body)' }}>{ME.oneLiner}</div>
+          <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>{me.name}</h2>
+          <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginBottom: 10 }}>{me.city} · {me.since}</div>
+          <div className="serif" style={{ fontSize: 17, color: 'var(--rx-body)' }}>{me.oneLiner}</div>
         </div>
 
         {/* IDENTITY CHIPS — tap to verify, never self-written */}
@@ -116,7 +117,7 @@ export function SportingLife() {
         {/* SPORTING JOURNEY — the story, told by other people */}
         <div style={{ paddingTop: 26, borderTop: '1px solid var(--rx-hairline)' }}>
           <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 6 }}>Your sporting journey</div>
-          <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 24 }}>{ME.journeyLine}</div>
+          <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 24 }}>{me.journeyLine}</div>
 
           <div style={{ position: 'relative', paddingLeft: 44 }}>
             <div style={{ position: 'absolute', left: 19, top: 8, bottom: 20, width: 2, background: '#E7E0D3' }} />

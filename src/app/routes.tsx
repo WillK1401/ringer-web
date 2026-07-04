@@ -7,6 +7,7 @@ import { Network } from '../screens/rx/Network';
 import { Gather } from '../screens/rx/Gather';
 import { Activity } from '../screens/rx/Activity';
 import { SportingLife } from '../screens/rx/SportingLife';
+import { EditProfile } from '../screens/rx/EditProfile';
 import { GameDetail } from '../screens/GameDetail';
 import { NearMeMap } from '../screens/NearMeMap';
 import { PostGame } from '../screens/PostGame';
@@ -65,7 +66,8 @@ export const router = createBrowserRouter([
       { path: '/network',  Component: Network },
       { path: '/gather',   Component: Gather },
       { path: '/activity', Component: Activity },
-      { path: '/profile',  Component: SportingLife },
+      { path: '/profile',      Component: SportingLife },
+      { path: '/profile/edit', Component: EditProfile },
 
       // Existing screens (settings and legacy flows)
       { path: '/onboarding',     Component: Onboarding },

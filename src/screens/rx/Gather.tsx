@@ -21,7 +21,12 @@ const VENUES: Record<string, { name: string; sub: string }[]> = {
 
 const DAYS  = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const TIMES = ['6:00', '7:00', '7:30', '8:00', '10:00', '12:00'];
-const SIZES = ['4', '6', '8', '10', '12', '14'];
+
+const fieldStyle: React.CSSProperties = {
+  width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '13px 16px',
+  borderRadius: 14, border: '1px solid #E7E2D9', background: '#fff',
+  color: 'var(--rx-ink)', outline: 'none',
+};
 
 // Fixed positions matching the design's ring layout (340×340 canvas)
 const CORE_POS = [
@@ -51,10 +56,16 @@ function chip(on: boolean): React.CSSProperties {
 export function Gather() {
   const [phase, setPhase]         = useState<Phase>('home');
   const [sport, setSport]         = useState<string | null>(null);
+  const [customSport, setCustomSport] = useState('');
+  const [addingSport, setAddingSport] = useState(false);
   const [venue, setVenue]         = useState<string | null>(null);
+  const [customVenue, setCustomVenue] = useState('');
+  const [addingVenue, setAddingVenue] = useState(false);
   const [day, setDay]             = useState<string | null>(null);
+  const [customDate, setCustomDate] = useState('');
   const [time, setTime]           = useState<string | null>(null);
-  const [size, setSize]           = useState<string | null>(null);
+  const [customTime, setCustomTime] = useState('');
+  const [size, setSize]           = useState<number | null>(null);
   const [activated, setActivated] = useState(false);
 
   const [trusted, setTrusted]     = useState(false);
@@ -63,9 +74,15 @@ export function Gather() {
 
   const count = 5 + (trusted ? 3 : 0) + (discovery ? 2 : 0);
 
+  // Human-readable "when" from either the quick chips or the native pickers
+  const dateLabel = customDate
+    ? new Date(customDate + 'T00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+    : day;
+  const whenLabel = [dateLabel, time || customTime].filter(Boolean).join(' ');
+
   const sessionTitle = activated
     ? 'Wednesday Football · this week'
-    : `${sport ?? 'Your game'} · ${day ?? ''}${time ? ` ${time}` : ''}`;
+    : `${sport ?? 'Your game'}${whenLabel ? ` · ${whenLabel}` : ''}`;
 
   const back = (to: Phase) => () => setPhase(to);
 
@@ -148,11 +165,40 @@ export function Gather() {
           <div className="serif" style={serifSub}>One tap — you can always change it.</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {SPORTS.map(s => (
-              <button key={s} onClick={() => { setSport(s); setPhase('where'); }} aria-label={s} style={chip(sport === s)}>
+              <button key={s} onClick={() => { setSport(s); setAddingSport(false); setPhase('where'); }} aria-label={s} style={chip(sport === s)}>
                 {s}
               </button>
             ))}
+            <button
+              onClick={() => setAddingSport(v => !v)}
+              aria-label="Other sport"
+              aria-expanded={addingSport}
+              style={chip(!!sport && !SPORTS.includes(sport))}
+            >
+              {sport && !SPORTS.includes(sport) ? sport : 'Other'}
+            </button>
           </div>
+          {addingSport && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <input
+                autoFocus
+                value={customSport}
+                onChange={e => setCustomSport(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && customSport.trim()) { setSport(customSport.trim()); setAddingSport(false); setPhase('where'); } }}
+                placeholder="Name your sport…"
+                aria-label="Custom sport name"
+                style={fieldStyle}
+              />
+              <button
+                onClick={() => { if (customSport.trim()) { setSport(customSport.trim()); setAddingSport(false); setPhase('where'); } }}
+                disabled={!customSport.trim()}
+                aria-label="Confirm sport"
+                style={{ flexShrink: 0, padding: '0 20px', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 600, cursor: customSport.trim() ? 'pointer' : 'default', background: customSport.trim() ? 'var(--rx-green)' : '#E4DFD5', color: customSport.trim() ? '#fff' : '#A39A88' }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -165,12 +211,12 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('sport')}
           <h2 style={qStyle}>Where?</h2>
-          <div className="serif" style={serifSub}>Places you and your circle already play.</div>
+          <div className="serif" style={serifSub}>Recent places, or type any address.</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {VENUES.default.map(v => (
               <button
                 key={v.name}
-                onClick={() => { setVenue(v.name); setPhase('when'); }}
+                onClick={() => { setVenue(v.name); setAddingVenue(false); setPhase('when'); }}
                 aria-label={v.name}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', padding: 16,
@@ -187,6 +233,38 @@ export function Gather() {
                 {venue === v.name && <span style={{ color: 'var(--rx-green)', fontSize: 15 }}>✓</span>}
               </button>
             ))}
+
+            {/* Manual address entry */}
+            {addingVenue ? (
+              <div style={{ padding: 16, borderRadius: 18, border: '1.5px solid var(--rx-green)', background: '#fff' }}>
+                <input
+                  autoFocus
+                  value={customVenue}
+                  onChange={e => setCustomVenue(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && customVenue.trim()) { setVenue(customVenue.trim()); setPhase('when'); } }}
+                  placeholder="Venue name or address…"
+                  aria-label="Venue address"
+                  style={fieldStyle}
+                />
+                <button
+                  onClick={() => { if (customVenue.trim()) { setVenue(customVenue.trim()); setPhase('when'); } }}
+                  disabled={!customVenue.trim()}
+                  aria-label="Confirm venue"
+                  style={{ width: '100%', marginTop: 10, padding: 13, borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 600, cursor: customVenue.trim() ? 'pointer' : 'default', background: customVenue.trim() ? 'var(--rx-green)' : '#E4DFD5', color: customVenue.trim() ? '#fff' : '#A39A88' }}
+                >
+                  Use this address
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setAddingVenue(true)}
+                aria-label="Enter an address manually"
+                style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', padding: 16, borderRadius: 18, border: '1px dashed #D8D2C7', background: 'none', cursor: 'pointer' }}
+              >
+                <span style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid var(--rx-green)', color: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>+</span>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--rx-body)' }}>Enter an address</div>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -200,30 +278,49 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('where')}
           <h2 style={qStyle}>When?</h2>
-          <div className="serif" style={serifSub}>Pick a day, then a time.</div>
+          <div className="serif" style={serifSub}>Pick a quick option, or choose any date and time.</div>
+
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 12 }}>Day</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 26 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {DAYS.map(d => (
-              <button key={d} onClick={() => setDay(d)} aria-label={d} aria-pressed={day === d} style={chip(day === d)}>{d}</button>
+              <button key={d} onClick={() => { setDay(d); setCustomDate(''); }} aria-label={d} aria-pressed={day === d} style={chip(day === d)}>{d}</button>
             ))}
           </div>
+          <input
+            type="date"
+            value={customDate}
+            onChange={e => { setCustomDate(e.target.value); setDay(null); }}
+            aria-label="Choose a specific date"
+            style={{ ...fieldStyle, marginBottom: 26, ...(customDate ? { borderColor: 'var(--rx-green)' } : {}) }}
+          />
+
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 12 }}>Kick-off</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {TIMES.map(t => (
-              <button
-                key={t}
-                onClick={() => { setTime(t); if (day) setPhase('size'); }}
-                aria-label={t}
-                aria-pressed={time === t}
-                style={chip(time === t)}
-              >
-                {t}
-              </button>
+              <button key={t} onClick={() => { setTime(t); setCustomTime(''); }} aria-label={t} aria-pressed={time === t} style={chip(time === t)}>{t}</button>
             ))}
           </div>
-          {!day && time && (
-            <div style={{ marginTop: 16, fontSize: 13, color: 'var(--rx-faint)' }}>Pick a day too and we'll move on.</div>
-          )}
+          <input
+            type="time"
+            value={customTime}
+            onChange={e => { setCustomTime(e.target.value); setTime(null); }}
+            aria-label="Choose a specific time"
+            style={{ ...fieldStyle, ...(customTime ? { borderColor: 'var(--rx-green)' } : {}) }}
+          />
+
+          <button
+            onClick={() => setPhase('size')}
+            disabled={!(day || customDate) || !(time || customTime)}
+            aria-label="Continue to players"
+            style={{
+              width: '100%', marginTop: 26, border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99,
+              letterSpacing: '-0.01em', cursor: (day || customDate) && (time || customTime) ? 'pointer' : 'not-allowed',
+              background: (day || customDate) && (time || customTime) ? 'var(--rx-green)' : '#E4DFD5',
+              color: (day || customDate) && (time || customTime) ? '#fff' : '#A39A88',
+            }}
+          >
+            Continue
+          </button>
         </div>
       </div>
     );
@@ -236,32 +333,54 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('when')}
           <h2 style={qStyle}>How many players?</h2>
-          <div className="serif" style={serifSub}>Including you.</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 30 }}>
-            {SIZES.map(s => (
-              <button key={s} onClick={() => setSize(s)} aria-label={`${s} players`} aria-pressed={size === s} style={{ ...chip(size === s), minWidth: 62, textAlign: 'center' }}>
-                {s}
+          <div className="serif" style={serifSub}>Including you. Anywhere from 1 to 22.</div>
+
+          {/* Stepper */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, margin: '10px 0 24px' }}>
+            <button
+              onClick={() => setSize(s => Math.max(1, (s ?? 8) - 1))}
+              aria-label="One fewer player"
+              style={{ width: 52, height: 52, borderRadius: '50%', border: '1.5px solid #E7E2D9', background: '#fff', fontSize: 26, fontWeight: 600, color: 'var(--rx-ink-soft)', cursor: 'pointer', lineHeight: 1 }}
+            >
+              −
+            </button>
+            <div style={{ minWidth: 90, textAlign: 'center' }}>
+              <div style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.03em' }}>{size ?? 8}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 4 }}>players</div>
+            </div>
+            <button
+              onClick={() => setSize(s => Math.min(22, (s ?? 8) + 1))}
+              aria-label="One more player"
+              style={{ width: 52, height: 52, borderRadius: '50%', border: '1.5px solid #E7E2D9', background: '#fff', fontSize: 26, fontWeight: 600, color: 'var(--rx-ink-soft)', cursor: 'pointer', lineHeight: 1 }}
+            >
+              +
+            </button>
+          </div>
+
+          {/* Common presets */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 30 }}>
+            {[{ n: 4, l: '2-a-side' }, { n: 10, l: '5-a-side' }, { n: 12, l: '6-a-side' }, { n: 14, l: '7-a-side' }].map(p => (
+              <button key={p.n} onClick={() => setSize(p.n)} aria-label={p.l} style={{ fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 99, cursor: 'pointer', border: '1px solid #EEEAE3', background: size === p.n ? 'var(--rx-green-tint)' : '#fff', color: size === p.n ? 'var(--rx-green)' : 'var(--rx-faint)' }}>
+                {p.l}
               </button>
             ))}
           </div>
+
           <button
-            onClick={() => setPhase('circles')}
-            disabled={!size}
+            onClick={() => { if (size == null) setSize(8); setPhase('circles'); }}
             aria-label="Invite through trust"
             style={{
               width: '100%', border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99,
-              letterSpacing: '-0.01em', cursor: size ? 'pointer' : 'not-allowed',
-              background: size ? 'var(--rx-green)' : '#E4DFD5', color: size ? '#fff' : '#A39A88',
-              boxShadow: size ? '0 14px 30px -12px rgba(28,124,84,0.55)' : 'none',
+              letterSpacing: '-0.01em', cursor: 'pointer',
+              background: 'var(--rx-green)', color: '#fff',
+              boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)',
             }}
           >
             Invite through trust
           </button>
-          {sport && venue && day && time && (
-            <div style={{ textAlign: 'center', fontSize: 12.5, color: '#9C968C', marginTop: 12 }}>
-              {sport} · {venue} · {day} {time}
-            </div>
-          )}
+          <div style={{ textAlign: 'center', fontSize: 12.5, color: '#9C968C', marginTop: 12 }}>
+            {[sport, venue, whenLabel].filter(Boolean).join(' · ')}
+          </div>
         </div>
       </div>
     );
@@ -271,7 +390,7 @@ export function Gather() {
   return (
     <>
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ padding: '8px 24px 130px' }}>
+        <div style={{ padding: '8px 24px 180px' }}>
           <button
             onClick={() => { setPhase(activated ? 'home' : 'size'); setTrusted(false); setDiscovery(false); }}
             aria-label="Back"

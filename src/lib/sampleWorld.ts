@@ -260,3 +260,35 @@ export const GROUP_PAYMENTS = {
     { init: 'W',  color: '#5B7A6E', name: 'You',    status: 'Paid',          statusColor: '#1C7C54' },
   ],
 };
+
+// ── Editable profile (prototype persistence via localStorage) ───────────
+
+export interface Profile {
+  name: string;
+  init: string;
+  color: string;
+  city: string;
+  since: string;
+  oneLiner: string;
+  journeyLine: string;
+}
+
+const PROFILE_KEY = 'rx-profile';
+
+export function loadProfile(): Profile {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    const merged = { ...ME, ...saved };
+    merged.init = (merged.name?.trim()[0] || 'W').toUpperCase();
+    return merged;
+  } catch {
+    return ME;
+  }
+}
+
+export function saveProfile(p: Partial<Profile>) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...saved, ...p }));
+  } catch { /* storage unavailable — edits last for the session only */ }
+}
