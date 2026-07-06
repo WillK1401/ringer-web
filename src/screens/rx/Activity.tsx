@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
-import { chatsApi, gamesApi } from '../../lib/api';
+import { chatsApi, gamesApi, groupsApi } from '../../lib/api';
 import {
   PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS,
   GROUP_PHOTOS, GROUP_HISTORY, GROUP_PAYMENTS,
@@ -40,8 +40,11 @@ export function Activity() {
   const [realMsgs, setRealMsgs]   = useState<any[]>([]);
   const [realPlayers, setRealPlayers] = useState<any[]>([]);
   const [realDraft, setRealDraft] = useState('');
+  const [realGroups, setRealGroups] = useState<any[]>([]);
+  const [groupDetail, setGroupDetail] = useState<any | null>(null);
 
   useEffect(() => {
+    groupsApi.getMyGroups().then(gs => setRealGroups(gs || [])).catch(() => {});
     chatsApi.getMyChats()
       .then(rows => {
         const now = Date.now();
@@ -61,7 +64,7 @@ export function Activity() {
   }, []);
 
   const openReal = (row: any) => {
-    setRealSel(row);
+    setRealSel({ ...row, kind: 'game' });
     setRealTab('messages');
     setRealMsgs([]);
     setRealPlayers([]);
@@ -70,12 +73,32 @@ export function Activity() {
     gamesApi.getGame(row.id).then(({ players }) => setRealPlayers(players || [])).catch(() => {});
   };
 
+  const openRealGroup = (g: any) => {
+    setRealSel({
+      kind: 'group',
+      id: g.id,
+      name: g.name,
+      init: g.name.split(' ').filter(Boolean).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase(),
+      color: '#B0714F',
+      memberCount: g.memberCount,
+    });
+    setRealTab('messages');
+    setRealMsgs([]);
+    setGroupDetail(null);
+    setRealDraft('');
+    groupsApi.getMessages(g.id).then(setRealMsgs).catch(() => {});
+    groupsApi.getGroup(g.id).then(setGroupDetail).catch(() => {});
+  };
+
   const sendReal = async () => {
     const text = realDraft.trim();
     if (!text || !realSel) return;
     setRealDraft('');
     setRealMsgs(prev => [...prev, { id: `tmp-${Date.now()}`, body: text, mine: true, senderName: 'You', sentAt: new Date().toISOString() }]);
-    try { await chatsApi.sendMessage(realSel.id, text); } catch { /* optimistic row stays; refetch on reopen */ }
+    try {
+      if (realSel.kind === 'group') await groupsApi.sendMessage(realSel.id, text);
+      else await chatsApi.sendMessage(realSel.id, text);
+    } catch { /* optimistic row stays; refetch on reopen */ }
   };
 
   const fmtWhen = (iso: string) => {
@@ -114,11 +137,13 @@ export function Activity() {
               <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em' }}>{realSel.name}</span>
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginBottom: 16 }}>
-              {fmtWhen(realSel.kickoffAt)} · {realSel.role === 'organiser' ? "you're hosting" : "you're in"}
+              {realSel.kind === 'group'
+                ? `${realSel.memberCount} member${realSel.memberCount === 1 ? '' : 's'} · lives beyond any one game`
+                : `${fmtWhen(realSel.kickoffAt)} · ${realSel.role === 'organiser' ? "you're hosting" : "you're in"}`}
             </div>
 
             <div className="scr" role="tablist" style={{ display: 'flex', gap: 18, paddingBottom: 2, borderBottom: '1px solid var(--rx-hairline)', marginBottom: 18 }}>
-              {(['messages', 'players'] as const).map(t => (
+              {(realSel.kind === 'group' ? (['messages', 'sessions', 'members'] as const) : (['messages', 'players'] as const)).map(t => (
                 <button key={t} role="tab" aria-selected={realTab === t} onClick={() => setRealTab(t)}
                   style={{ fontSize: 13.5, fontWeight: 700, color: realTab === t ? 'var(--rx-ink)' : 'var(--rx-ghost)', paddingBottom: 11, background: 'none', border: 'none', borderBottom: realTab === t ? '2px solid var(--rx-green)' : '2px solid transparent', cursor: 'pointer', textTransform: 'capitalize' }}>
                   {t}
@@ -166,7 +191,44 @@ export function Activity() {
             </div>
           )}
 
-          {realTab === 'players' && (
+          {realTab === ('sessions' as any) && realSel.kind === 'group' && (
+            <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {!groupDetail?.games?.length && (
+                <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', textAlign: 'center', padding: '18px 0' }}>
+                  No sessions planned — gather one from the + tab.
+                </div>
+              )}
+              {(groupDetail?.games || []).map((g: any) => (
+                <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', border: '1px solid #EEEAE3', borderRadius: 16, padding: 14 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 600 }}>{g.venue}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2 }}>{fmtWhen(g.kickoffAt)}</div>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 10px', borderRadius: 99 }}>
+                    {g.filledCount}/{g.playerCount}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {realTab === ('members' as any) && realSel.kind === 'group' && (
+            <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(groupDetail?.members || []).map((m: any) => (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ width: 30, height: 30, borderRadius: '50%', background: '#6E9A82', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                    {(m.displayName || '?').slice(0, 2).toUpperCase()}
+                  </span>
+                  <span style={{ flex: 1, fontSize: 13.5, color: 'var(--rx-ink-soft)' }}>{m.displayName}</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 8, padding: 16, background: 'var(--rx-card)', borderRadius: 16, fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)' }}>
+                Anyone who joins one of this group's games becomes a member — communities grow through play.
+              </div>
+            </div>
+          )}
+
+          {realTab === 'players' && realSel.kind !== 'group' && (
             <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {realPlayers.length === 0 && (
                 <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', textAlign: 'center', padding: '18px 0' }}>
@@ -430,8 +492,28 @@ export function Activity() {
 
         {/* YOUR GROUPS — the calm, permanent list */}
         <div style={{ ...eyebrow('var(--rx-ghost)'), marginBottom: 14 }}>Your groups</div>
+        {realGroups.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+            {realGroups.map(g => (
+              <button key={g.id} onClick={() => openRealGroup(g)} aria-label={`Open ${g.name}`}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #EEEAE3', borderRadius: 20, padding: 16, cursor: 'pointer' }}>
+                <span style={{ width: 44, height: 44, borderRadius: '50%', background: '#B0714F', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, flexShrink: 0 }}>
+                  {g.name.split(' ').filter(Boolean).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.name}</div>
+                  <div style={{ fontSize: 13, color: 'var(--rx-faint)', marginTop: 2 }}>
+                    {g.memberCount} member{g.memberCount === 1 ? '' : 's'}
+                    {g.nextGame ? ` · next ${new Date(g.nextGame.kickoffAt).toLocaleDateString('en-GB', { weekday: 'short' })}` : ''}
+                  </div>
+                </div>
+                <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {ACTIVITY_GROUPS.map(g => (
+          {realGroups.length === 0 && ACTIVITY_GROUPS.map(g => (
             <button
               key={g.id}
               onClick={() => { setSel(g.id); setTab('messages'); setQuickSent(null); setSent([]); setDraft(''); }}

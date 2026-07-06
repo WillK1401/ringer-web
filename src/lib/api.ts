@@ -102,6 +102,11 @@ export const notificationsApi = {
 export const groupsApi = {
   getMyGroups: () => request<any[]>('/groups'),
   getGroup: (id: string) => request<any>(`/groups/${id}`),
+  create: (data: { name: string; defaultVenue?: string; visibility?: string }) =>
+    request<any>('/groups', { method: 'POST', body: JSON.stringify(data) }),
+  getMessages: (id: string) => request<any[]>(`/groups/${id}/messages`),
+  sendMessage: (id: string, body: string) =>
+    request<any>(`/groups/${id}/messages`, { method: 'POST', body: JSON.stringify({ body }) }),
 };
 
 // ── Health ─────────────────────────────────────────────────────────────────

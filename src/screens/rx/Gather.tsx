@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GATHER, PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
-import { gamesApi } from '../../lib/api';
+import { gamesApi, groupsApi } from '../../lib/api';
 
 const P = PEOPLE;
 
@@ -102,6 +102,20 @@ export function Gather() {
   const [customTime, setCustomTime] = useState('');
   const [size, setSize]           = useState<number | null>(null);
   const [activated, setActivated] = useState(false);
+  const [realGroups, setRealGroups] = useState<any[]>([]);
+  const [activeGroup, setActiveGroup] = useState<any | null>(null);
+  const [makeGroup, setMakeGroup] = useState(false);
+
+  useEffect(() => {
+    groupsApi.getMyGroups().then(gs => setRealGroups(gs || [])).catch(() => {});
+  }, []);
+
+  const activateGroup = (g: any) => {
+    setActiveGroup(g);
+    setActivated(false);
+    if (g.defaultVenue) { setVenue(g.defaultVenue); setPhase('when'); }
+    else setPhase('where');
+  };
 
   const [trusted, setTrusted]     = useState(false);
   const [discovery, setDiscovery] = useState(false);
@@ -117,7 +131,17 @@ export function Gather() {
       ? computeKickoff('Wed', '', '7:30', '')
       : computeKickoff(day, customDate, time, customTime);
     try {
+      let groupId: string | undefined = activeGroup?.id;
+      if (!groupId && makeGroup && !activated) {
+        const g = await groupsApi.create({
+          name: `${sport ?? 'Game'} at ${venue ?? 'TBC'}`,
+          defaultVenue: venue ?? undefined,
+          visibility: discovery ? 'public' : trusted ? 'second' : 'first',
+        });
+        groupId = g.id;
+      }
       await gamesApi.postGame({
+        groupId,
         venue: activated ? 'Trinity Bellwoods Park' : (venue ?? 'TBC'),
         sport: activated ? 'Football' : (sport ?? 'Football'),
         kickoffAt,
@@ -142,7 +166,9 @@ export function Gather() {
     : day;
   const whenLabel = [dateLabel, time || customTime].filter(Boolean).join(' ');
 
-  const sessionTitle = activated
+  const sessionTitle = activeGroup
+    ? `${activeGroup.name}${whenLabel ? ` · ${whenLabel}` : ' · this week'}`
+    : activated
     ? 'Wednesday Football · this week'
     : `${sport ?? 'Your game'}${whenLabel ? ` · ${whenLabel}` : ''}`;
 
@@ -176,7 +202,31 @@ export function Gather() {
           <h2 style={qStyle}>Who do you want to bring together?</h2>
           <div className="serif" style={serifSub}>Activate your regulars, or start something new.</div>
 
-          {/* Activate existing group — the weekly ask */}
+          {/* Real groups — activate this week's session */}
+          {realGroups.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
+              {realGroups.map(g => (
+                <div key={g.id} style={{ background: 'var(--rx-card)', borderRadius: 24, padding: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 10 }}>Your group</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.name}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2, marginBottom: 12 }}>
+                    {g.memberCount} member{g.memberCount === 1 ? '' : 's'}
+                    {g.nextGame ? ` · next: ${new Date(g.nextGame.kickoffAt).toLocaleDateString('en-GB', { weekday: 'short' })}` : ' · nothing planned'}
+                  </div>
+                  <button
+                    onClick={() => activateGroup(g)}
+                    aria-label={`Ask ${g.name} who's in this week`}
+                    style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, padding: 14, borderRadius: 99, cursor: 'pointer', letterSpacing: '-0.01em' }}
+                  >
+                    Ask "who's in this week?"
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sample group — shown until you have a real one */}
+          {realGroups.length === 0 && (
           <div style={{ background: 'var(--rx-card)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 14 }}>This week</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
@@ -198,6 +248,7 @@ export function Gather() {
               Ask "who's in this week?"
             </button>
           </div>
+          )}
 
           {/* Start something new */}
           <button
@@ -454,7 +505,7 @@ export function Gather() {
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '8px 24px 180px' }}>
           <button
-            onClick={() => { setPhase(activated ? 'home' : 'size'); setTrusted(false); setDiscovery(false); }}
+            onClick={() => { setPhase(activated || activeGroup ? 'home' : 'size'); if (activeGroup) setActiveGroup(null); setTrusted(false); setDiscovery(false); }}
             aria-label="Back"
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 10px' }}
           >
@@ -593,8 +644,20 @@ export function Gather() {
         </div>
       </div>
 
+      {/* keep-the-crew toggle lives with the publish action */}
       {/* Publish CTA */}
       <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 74%,rgba(251,250,247,0))' }}>
+        {!activated && !activeGroup && (
+          <button
+            onClick={() => setMakeGroup(m => !m)}
+            aria-pressed={makeGroup}
+            aria-label="Keep this crew together as a group"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', marginBottom: 10, padding: '11px 16px', borderRadius: 14, border: makeGroup ? '1.5px solid var(--rx-green)' : '1px dashed #D8D2C7', background: makeGroup ? 'var(--rx-green-tint)' : 'rgba(251,250,247,0.9)', cursor: 'pointer' }}
+          >
+            <span style={{ width: 20, height: 20, borderRadius: 6, border: makeGroup ? 'none' : '1.5px solid #C9C2B4', background: makeGroup ? 'var(--rx-green)' : 'transparent', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{makeGroup ? '✓' : ''}</span>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--rx-ink-soft)' }}>Keep this crew together — make it a group</span>
+          </button>
+        )}
         {publishError && (
           <div role="alert" style={{ marginBottom: 10, padding: '10px 16px', borderRadius: 12, background: 'rgba(200,16,46,0.07)', fontSize: 13, color: '#B33A3A', textAlign: 'center' }}>
             {publishError}
