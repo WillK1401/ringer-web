@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { gamesApi } from '../../lib/api';
 import { PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { GameDetailUnfold } from './GameDetailUnfold';
@@ -26,8 +27,52 @@ const ALL_GAMES = [
   { venue: 'Christie Pits',          when: 'Sunday · 11:00',    who: 'Open game · 2 mutual connections', sport: 'Basketball' },
 ];
 
+function fmtKick(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const tmr = new Date(now); tmr.setDate(now.getDate() + 1);
+  const t = d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' });
+  if (d.toDateString() === now.toDateString()) return `Today · ${t}`;
+  if (d.toDateString() === tmr.toDateString()) return `Tomorrow · ${t}`;
+  return `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${t}`;
+}
+
 export function Discover() {
   const navigate = useNavigate();
+  const [upcoming, setUpcoming]   = useState<any[]>([]);
+  const [nearby, setNearby]       = useState<any[]>([]);
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
+
+  // Real games: yours first, then what the network can see
+  useEffect(() => {
+    gamesApi.getMyGames()
+      .then(({ hosting, playing }) => {
+        const now = Date.now();
+        const mine = [
+          ...hosting.map((g: any) => ({ ...g, role: 'organiser' })),
+          ...playing.map((g: any) => ({ ...g, role: 'player' })),
+        ].filter(g => new Date(g.kickoffAt).getTime() > now)
+         .sort((a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime());
+        setUpcoming(mine);
+      })
+      .catch(() => {});
+    gamesApi.getFeed({ day: 'all' })
+      .then(rows => setNearby((rows || []).filter((g: any) => g.accessTier !== 'organiser').slice(0, 5)))
+      .catch(() => {});
+  }, []);
+
+  const joinNearby = async (g: any) => {
+    try {
+      const res = await gamesApi.joinGame(g.id);
+      if (res?.payment?.clientSecret) {
+        navigate(`/game/${g.id}`); // paid game — finish payment on the game page
+        return;
+      }
+      setJoinedIds(prev => new Set(prev).add(g.id));
+    } catch {
+      navigate(`/game/${g.id}`);
+    }
+  };
   const [joined, setJoined]         = useState(false);
   const [whyOpen, setWhyOpen]       = useState(false);
   const [activeDay, setActiveDay]   = useState(2);
@@ -109,6 +154,56 @@ export function Discover() {
       </div>
 
       <div style={{ padding: '0 24px 120px' }}>
+        {upcoming.length > 0 ? (
+        <>
+        {/* REAL — your next game */}
+        <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rx-green)' }}>Your next game</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--rx-muted)' }}>{fmtKick(upcoming[0].kickoffAt).split(' · ')[1]}</span>
+          </div>
+          <h3 style={{ margin: '0 0 8px', fontSize: 23, lineHeight: 1.14, fontWeight: 700, letterSpacing: '-0.02em' }}>{upcoming[0].venue}</h3>
+          <div className="serif" style={{ fontSize: 16.5, lineHeight: 1.4, color: '#5A554D', marginBottom: 18 }}>
+            {fmtKick(upcoming[0].kickoffAt)} · {upcoming[0].sport ?? 'Football'}
+            {upcoming[0].role === 'organiser' ? " — you're hosting." : " — you're in."}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 12px', borderRadius: 99 }}>
+              {(upcoming[0].confirmedCount ?? 0) + 1}/{upcoming[0].playerCount} in
+            </span>
+            {upcoming[0].role === 'organiser' && (
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-clay)', background: '#F6ECE5', padding: '5px 12px', borderRadius: 99 }}>Hosting</span>
+            )}
+          </div>
+          <button
+            onClick={() => navigate(`/game/${upcoming[0].id}`)}
+            aria-label="Open your next game"
+            style={{ width: '100%', fontSize: 16, fontWeight: 600, padding: 16, borderRadius: 99, border: 'none', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)', letterSpacing: '-0.01em' }}
+          >
+            Open game
+          </button>
+        </div>
+
+        {upcoming.length > 1 && (
+          <div style={{ marginTop: 36 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 18 }}>The rest of your week</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {upcoming.slice(1, 4).map(g => (
+                <button key={g.id} onClick={() => navigate(`/game/${g.id}`)} aria-label={`Open ${g.venue}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.venue}</div>
+                    <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>{fmtKick(g.kickoffAt)} · {(g.confirmedCount ?? 0) + 1}/{g.playerCount} in</div>
+                  </div>
+                  <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        </>
+        ) : (
+        <>
         {/* HERO — Your Wednesday football */}
         <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -229,6 +324,48 @@ export function Discover() {
             </div>
           </div>
         </div>
+
+        </>
+        )}
+
+        {/* NEARBY — real games your network can see */}
+        {nearby.length > 0 && (
+          <div style={{ marginTop: 36 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 18 }}>Games near you</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {nearby.map(g => {
+                const joined = joinedIds.has(g.id);
+                const priceGBP = Math.round((g.costPerPlayer ?? 0) / 100);
+                return (
+                  <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <button onClick={() => navigate(`/game/${g.id}`)} aria-label={`Open ${g.venue}`}
+                      style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                      <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.venue}</div>
+                      <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>
+                        {fmtKick(g.kickoffAt)}{priceGBP > 0 ? ` · £${priceGBP}` : ' · Free'}
+                        {g.accessTier === 'first' ? ' · In your network' : ''}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => joinNearby(g)}
+                      disabled={joined}
+                      aria-label={joined ? `Joined ${g.venue}` : `Join ${g.venue}`}
+                      style={{
+                        fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
+                        cursor: joined ? 'default' : 'pointer',
+                        ...(joined
+                          ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                          : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
+                      }}
+                    >
+                      {joined ? "In ✓" : 'Join'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* YOUR COMMUNITIES */}
         <div style={{ marginTop: 36 }}>

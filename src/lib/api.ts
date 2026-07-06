@@ -84,6 +84,9 @@ export const paymentsApi = {
 
 export const chatsApi = {
   getMyChats: () => request<{ id: string; venue: string; kickoff_at: string; role: 'organiser' | 'player' }[]>('/chats'),
+  getMessages: (gameId: string) => request<any[]>(`/chats/${gameId}/messages`),
+  sendMessage: (gameId: string, body: string) =>
+    request<any>(`/chats/${gameId}/messages`, { method: 'POST', body: JSON.stringify({ body }) }),
 };
 
 // ── Notifications ──────────────────────────────────────────────────────────
