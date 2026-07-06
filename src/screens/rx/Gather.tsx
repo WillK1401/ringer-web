@@ -1,8 +1,43 @@
 import { useState } from 'react';
 import { GATHER, PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
+import { gamesApi } from '../../lib/api';
 
 const P = PEOPLE;
+
+/** Turn the wizard's day/time picks into a concrete future kickoff. */
+function computeKickoff(day: string | null, customDate: string, time: string | null, customTime: string): string | null {
+  const now = new Date();
+  let d: Date;
+  if (customDate) {
+    d = new Date(customDate + 'T00:00');
+  } else if (day === 'Today') {
+    d = new Date(now);
+  } else if (day === 'Tomorrow') {
+    d = new Date(now); d.setDate(d.getDate() + 1);
+  } else if (day) {
+    const idx = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(day);
+    if (idx < 0) return null;
+    d = new Date(now);
+    const delta = (idx - d.getDay() + 7) % 7 || 7;
+    d.setDate(d.getDate() + delta);
+  } else {
+    return null;
+  }
+  let hh: number, mm: number;
+  if (customTime) {
+    [hh, mm] = customTime.split(':').map(Number);
+  } else if (time) {
+    const [h, m] = time.split(':').map(Number);
+    hh = h >= 6 && h <= 8 ? h + 12 : h; // evening quick-chips are PM
+    mm = m;
+  } else {
+    return null;
+  }
+  d.setHours(hh, mm, 0, 0);
+  if (d <= now) d.setDate(d.getDate() + 7);
+  return d.toISOString();
+}
 
 type Phase = 'home' | 'sport' | 'where' | 'when' | 'size' | 'circles';
 
@@ -71,6 +106,33 @@ export function Gather() {
   const [trusted, setTrusted]     = useState(false);
   const [discovery, setDiscovery] = useState(false);
   const [published, setPublished] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
+
+  const publish = async () => {
+    setPublishing(true);
+    setPublishError('');
+    // Activated weekly session defaults to the group's usual slot
+    const kickoffAt = activated
+      ? computeKickoff('Wed', '', '7:30', '')
+      : computeKickoff(day, customDate, time, customTime);
+    try {
+      await gamesApi.postGame({
+        venue: activated ? 'Trinity Bellwoods Park' : (venue ?? 'TBC'),
+        sport: activated ? 'Football' : (sport ?? 'Football'),
+        kickoffAt,
+        playerCount: activated ? 10 : (size ?? 8),
+        pitchCost: 0,
+        // Trust circles map directly onto the network-visibility tiers
+        visibility: discovery ? 'public' : trusted ? 'second' : 'first',
+      });
+      setPublished(true);
+    } catch (e: any) {
+      setPublishError(e.message || 'Could not publish — check your connection and try again.');
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const count = 5 + (trusted ? 3 : 0) + (discovery ? 2 : 0);
 
@@ -532,13 +594,20 @@ export function Gather() {
       </div>
 
       {/* Publish CTA */}
-      <div style={{ position: 'absolute', bottom: 82, left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 74%,rgba(251,250,247,0))' }}>
+      <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 74%,rgba(251,250,247,0))' }}>
+        {publishError && (
+          <div role="alert" style={{ marginBottom: 10, padding: '10px 16px', borderRadius: 12, background: 'rgba(200,16,46,0.07)', fontSize: 13, color: '#B33A3A', textAlign: 'center' }}>
+            {publishError}
+          </div>
+        )}
         <button
-          onClick={() => setPublished(true)}
+          onClick={publish}
+          disabled={publishing}
           aria-label="Publish this session"
-          style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: 'pointer', boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)', letterSpacing: '-0.01em' }}
+          aria-busy={publishing}
+          style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)', letterSpacing: '-0.01em' }}
         >
-          Publish · {count} coming
+          {publishing ? 'Publishing…' : `Publish · ${count} coming`}
         </button>
       </div>
 

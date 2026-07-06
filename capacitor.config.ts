@@ -5,14 +5,12 @@ const config: CapacitorConfig = {
   appName: 'Ringer',
   webDir: 'dist',
   server: {
-    // Allow Capacitor to use the live Vercel URL in development for faster iteration.
-    // Remove this block before submitting to the App Store.
-    // url: 'https://ringer-web.vercel.app',
-    // allowNavigation: ['ringer-api-production.up.railway.app'],
+    // Clerk-hosted auth and Stripe onboarding render inside the WebView
+    allowNavigation: ['*.clerk.accounts.dev', '*.stripe.com', 'ringer-api-production.up.railway.app'],
   },
   ios: {
-    contentInset: 'automatic',
-    backgroundColor: '#F0EDE6',
+    contentInset: 'never',
+    backgroundColor: '#FBFAF7',
   },
 };
 

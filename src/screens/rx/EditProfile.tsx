@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { loadProfile, saveProfile } from '../../lib/sampleWorld';
+import { usersApi } from '../../lib/api';
 
 const label: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -26,11 +27,10 @@ export function EditProfile() {
   const initial = (p.name.trim()[0] || 'W').toUpperCase();
 
   const onSave = () => {
-    saveProfile({
-      name: p.name.trim() || 'Will Sutton',
-      city: p.city.trim(),
-      oneLiner: p.oneLiner.trim(),
-    });
+    const name = p.name.trim() || 'Player';
+    saveProfile({ name, city: p.city.trim(), oneLiner: p.oneLiner.trim() });
+    // Push to the real account; local copy is already saved either way
+    usersApi.updateMe({ displayName: name, city: p.city.trim() }).catch(() => {});
     setSaved(true);
     setTimeout(() => navigate('/profile'), 500);
   };

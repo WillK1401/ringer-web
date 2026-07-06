@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { loadProfile, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
+import { loadProfile, saveProfile, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
+import { usersApi } from '../../lib/api';
 
 const eyebrow = (color: string): React.CSSProperties => ({
   fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -10,7 +11,20 @@ const eyebrow = (color: string): React.CSSProperties => ({
 export function SportingLife() {
   const navigate = useNavigate();
   const [openTrait, setOpenTrait] = useState<string | null>(null);
-  const me = loadProfile();
+  const [me, setMe] = useState(loadProfile());
+
+  // Hydrate identity from the real account when signed in
+  useEffect(() => {
+    usersApi.getMe()
+      .then(u => {
+        if (!u?.displayName) return;
+        const since = u.createdAt ? `on Ringer since ${new Date(u.createdAt).getFullYear()}` : me.since;
+        saveProfile({ name: u.displayName, city: u.city || me.city, since });
+        setMe(loadProfile());
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const open = TRAITS.find(t => t.id === openTrait) ?? null;
 
   return (

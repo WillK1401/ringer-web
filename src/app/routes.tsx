@@ -41,7 +41,7 @@ function ProtectedLayout() {
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
             background: 'var(--rx-paper)',
           }}>
-            <div className="scr" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingTop: 12 }}>
+            <div className="scr" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingTop: 'calc(12px + env(safe-area-inset-top))' }}>
               <AnimatePresence mode="wait" initial={false}>
                 <PageTransition key={location.pathname}>
                   <Outlet />

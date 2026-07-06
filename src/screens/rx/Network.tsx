@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { ACTIVE_NOW, CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
+import type { Person } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
+import { usersApi, connectionsApi } from '../../lib/api';
 
-const SUGGESTIONS = [
-  { person: PEOPLE.emma,   reason: 'Played alongside you twice · trusted by Marcus' },
-  { person: PEOPLE.sam,    reason: 'Plays with Priya every Thursday · 4 mutuals' },
-  { person: PEOPLE.jordan, reason: 'In The Wednesday Regulars · looking for football' },
+const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
+
+interface Suggestion {
+  person: Person;
+  reason: string;
+  real: boolean; // true when backed by the API — Connect sends a real request
+}
+
+const SAMPLE_SUGGESTIONS: Suggestion[] = [
+  { person: PEOPLE.emma,   reason: 'Played alongside you twice · trusted by Marcus', real: false },
+  { person: PEOPLE.sam,    reason: 'Plays with Priya every Thursday · 4 mutuals', real: false },
+  { person: PEOPLE.jordan, reason: 'In The Wednesday Regulars · looking for football', real: false },
 ];
 
 export function Network() {
@@ -15,9 +25,33 @@ export function Network() {
   const [sel, setSel] = useState<string | null>(initialSel && WORLDS[initialSel] ? initialSel : null);
   const [connected, setConnected] = useState<Set<string>>(new Set());
   const [inviteSent, setInviteSent] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(SAMPLE_SUGGESTIONS);
+
+  // Real graph suggestions when the network has them; sample cast otherwise
+  useEffect(() => {
+    usersApi.getSuggestions()
+      .then(rows => {
+        if (!rows?.length) return;
+        setSuggestions(rows.slice(0, 5).map((u: any, i: number) => ({
+          person: {
+            id: u.id,
+            name: u.displayName,
+            first: (u.displayName || '').split(' ')[0] || u.handle,
+            init: u.avatarInitials || (u.displayName || '?').slice(0, 2).toUpperCase(),
+            color: PALETTE[i % PALETTE.length],
+          },
+          reason: `${u.mutuals} mutual connection${u.mutuals === 1 ? '' : 's'}${u.city ? ` · ${u.city}` : ''}`,
+          real: true,
+        })));
+      })
+      .catch(() => {});
+  }, []);
   const world = sel ? WORLDS[sel] : null;
 
-  const connect = (id: string) => setConnected(prev => new Set(prev).add(id));
+  const connect = (sug: Suggestion) => {
+    setConnected(prev => new Set(prev).add(sug.person.id));
+    if (sug.real) connectionsApi.send(sug.person.id).catch(() => {});
+  };
 
   if (world) {
     const p = world.person;
@@ -187,7 +221,8 @@ export function Network() {
             Grow your circle
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {SUGGESTIONS.map(({ person, reason }) => {
+            {suggestions.map((sug) => {
+              const { person, reason } = sug;
               const done = connected.has(person.id);
               return (
                 <div key={person.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)' }}>
@@ -197,7 +232,7 @@ export function Network() {
                     <div style={{ fontSize: 12.5, lineHeight: 1.4, color: 'var(--rx-muted)', marginTop: 2 }}>{reason}</div>
                   </div>
                   <button
-                    onClick={() => connect(person.id)}
+                    onClick={() => connect(sug)}
                     disabled={done}
                     aria-label={done ? `Connection request sent to ${person.first}` : `Connect with ${person.first}`}
                     style={{

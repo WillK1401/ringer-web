@@ -220,7 +220,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
       </div>
 
       {/* Sticky Join — confidence earned first */}
-      <div style={{ position: 'absolute', bottom: 82, left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 72%,rgba(251,250,247,0))' }}>
+      <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 72%,rgba(251,250,247,0))' }}>
         <button
           onClick={onJoin}
           aria-label={joined ? 'You are confirmed. Tap to release your spot.' : 'Join your Wednesday football at 7:30'}

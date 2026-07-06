@@ -61,11 +61,11 @@ export function TabBar() {
 
   return (
     <div style={{
-      position: 'absolute', bottom: 0, left: 0, right: 0, height: 82,
+      position: 'absolute', bottom: 0, left: 0, right: 0, height: 'calc(82px + env(safe-area-inset-bottom))',
       background: 'rgba(251,250,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
       borderTop: '1px solid #EDEAE3',
       display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around',
-      padding: '12px 18px 0', flexShrink: 0, zIndex: 25,
+      padding: '12px 18px calc(env(safe-area-inset-bottom))', flexShrink: 0, zIndex: 25,
     }}>
       <button onClick={() => navigate('/')} aria-label="Discover" aria-current={isDiscover ? 'page' : undefined} style={itemStyle}>
         <DiscoverIcon active={isDiscover} />
