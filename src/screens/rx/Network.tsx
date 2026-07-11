@@ -76,7 +76,7 @@ export function Network() {
 
           {world.nowLine && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '7px 13px', borderRadius: 99, marginBottom: 18 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3FBF77' }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#6FA84E' }} />
               {world.nowLine}
             </div>
           )}
@@ -156,7 +156,7 @@ export function Network() {
 
         {/* RIGHT NOW */}
         <div style={{ background: 'var(--rx-green)', borderRadius: 24, padding: 20, marginBottom: 30 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CFE9DB', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDD8C0', marginBottom: 16 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F7F3EB' }} />
             Right now
           </div>
@@ -165,11 +165,11 @@ export function Network() {
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
                   <Avatar person={e.person} size={40} />
-                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderRadius: '50%', background: '#F7F3EB', border: '2.5px solid #1C7C54' }} />
+                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderRadius: '50%', background: '#F7F3EB', border: '2.5px solid #3E5236' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, lineHeight: 1.35, color: '#fff' }}>{e.text}</div>
-                  <div style={{ fontSize: 12, color: '#CFE9DB', marginTop: 2 }}>{e.time}</div>
+                  <div style={{ fontSize: 12, color: '#CDD8C0', marginTop: 2 }}>{e.time}</div>
                 </div>
               </div>
             ))}

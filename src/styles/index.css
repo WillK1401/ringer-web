@@ -192,10 +192,10 @@ button:focus { outline: none; }
    ══════════════════════════════════════════════════════════════════════ */
 .rx {
   /* Colour */
-  --rx-green:        #1C7C54;
-  --rx-green-deep:   #0E3B29;
-  --rx-green-tint:   #EAF3ED;
-  --rx-green-live:   #3FBF77;
+  --rx-green:        #3E5236;
+  --rx-green-deep:   #26331F;
+  --rx-green-tint:   #E8EDE2;
+  --rx-green-live:   #6FA84E;
   --rx-paper:        #FBFAF7;
   --rx-card:         #F3EEE4;
   --rx-chip:         #F1EDE5;

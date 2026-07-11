@@ -29,7 +29,7 @@ export function Avatar({ person, size = 44, ring, live, liveRing = '#FBFAF7', st
         <span style={{
           position: 'absolute', bottom: 0, right: 0,
           width: dotSize, height: dotSize, borderRadius: '50%',
-          background: '#3FBF77', border: `2.5px solid ${liveRing}`,
+          background: '#6FA84E', border: `2.5px solid ${liveRing}`,
         }} />
       )}
     </div>

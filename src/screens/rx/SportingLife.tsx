@@ -154,7 +154,7 @@ export function SportingLife() {
               <div style={{
                 position: 'absolute', left: -44, top: 0, width: 40, height: 40, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, color: '#0E1A12', border: '3px solid #FBFAF7', background: '#3FBF77',
+                fontSize: 12, fontWeight: 700, color: '#0E1A12', border: '3px solid #FBFAF7', background: '#6FA84E',
               }}>
                 Now
               </div>

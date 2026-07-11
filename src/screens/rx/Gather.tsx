@@ -297,7 +297,7 @@ export function Gather() {
             <button
               onClick={() => { setActivated(true); setPhase('crew'); }}
               aria-label="Activate this week's Wednesday Football session"
-              style={{ width: '100%', marginTop: 12, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, padding: 15, borderRadius: 99, cursor: 'pointer', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)', letterSpacing: '-0.01em' }}
+              style={{ width: '100%', marginTop: 12, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, padding: 15, borderRadius: 99, cursor: 'pointer', boxShadow: '0 12px 24px -12px rgba(62, 82, 54,0.5)', letterSpacing: '-0.01em' }}
             >
               Ask "who's in this week?"
             </button>
@@ -540,7 +540,7 @@ export function Gather() {
               width: '100%', border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99,
               letterSpacing: '-0.01em', cursor: 'pointer',
               background: 'var(--rx-green)', color: '#fff',
-              boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)',
+              boxShadow: '0 14px 30px -12px rgba(62, 82, 54,0.55)',
             }}
           >
             Choose your crew
@@ -586,7 +586,7 @@ export function Gather() {
           <button
             onClick={() => setPhase('circles')}
             aria-label="See your circle"
-            style={{ width: '100%', marginTop: 26, border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99, letterSpacing: '-0.01em', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)' }}
+            style={{ width: '100%', marginTop: 26, border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99, letterSpacing: '-0.01em', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 14px 30px -12px rgba(62, 82, 54,0.55)' }}
           >
             {crewSel.size > 0 ? `Continue with ${crewSel.size} regular${crewSel.size === 1 ? '' : 's'}` : 'Continue without regulars'}
           </button>
@@ -621,16 +621,16 @@ export function Gather() {
 
           {/* CONCENTRIC RINGS */}
           <div style={{ position: 'relative', width: 340, height: 340, margin: '0 auto 8px' }} aria-label={`${count} coming. Core group in. ${trusted ? 'Trusted network invited.' : ''} ${discovery ? 'Open discovery on.' : ''}`}>
-            <div style={{ position: 'absolute', width: 300, height: 300, left: 20, top: 20, borderRadius: '50%', border: `1px dashed ${discovery ? '#8FB8A4' : '#E2DBCD'}` }} />
-            <div style={{ position: 'absolute', width: 240, height: 240, left: 50, top: 50, borderRadius: '50%', border: `1px solid ${trusted ? '#9FCDB6' : '#E7E1D6'}` }} />
-            <div style={{ position: 'absolute', width: 148, height: 148, left: 96, top: 96, borderRadius: '50%', border: '1px solid #BFD6C9', background: 'rgba(28,124,84,0.08)' }} />
+            <div style={{ position: 'absolute', width: 300, height: 300, left: 20, top: 20, borderRadius: '50%', border: `1px dashed ${discovery ? '#94A986' : '#E2DBCD'}` }} />
+            <div style={{ position: 'absolute', width: 240, height: 240, left: 50, top: 50, borderRadius: '50%', border: `1px solid ${trusted ? '#A8BE97' : '#E7E1D6'}` }} />
+            <div style={{ position: 'absolute', width: 148, height: 148, left: 96, top: 96, borderRadius: '50%', border: '1px solid #C3CDB4', background: 'rgba(62, 82, 54,0.08)' }} />
 
             <div style={{ position: 'absolute', left: 0, right: 0, top: 0, textAlign: 'center', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: discovery ? 'var(--rx-green)' : '#B7AE9F' }}>Open discovery</div>
             <div style={{ position: 'absolute', left: 0, right: 0, top: 32, textAlign: 'center', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: trusted ? 'var(--rx-green)' : '#A39A88' }}>Trusted network</div>
 
-            <div style={{ position: 'absolute', left: 120, top: 120, width: 100, height: 100, borderRadius: '50%', background: 'var(--rx-green)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px -8px rgba(28,124,84,0.6)' }}>
+            <div style={{ position: 'absolute', left: 120, top: 120, width: 100, height: 100, borderRadius: '50%', background: 'var(--rx-green)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px -8px rgba(62, 82, 54,0.6)' }}>
               <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{count}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#C7E6D5', letterSpacing: '0.04em', marginTop: 2 }}>{published ? 'in' : 'invited'}</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#CDD8C0', letterSpacing: '0.04em', marginTop: 2 }}>{published ? 'in' : 'invited'}</span>
             </div>
 
             {crewSelected.slice(0, 5).map((c, i) => {
@@ -786,7 +786,7 @@ export function Gather() {
           disabled={publishing}
           aria-label={published ? 'Open this game in Activity' : 'Publish this session'}
           aria-busy={publishing}
-          style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)', letterSpacing: '-0.01em' }}
+          style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(62, 82, 54,0.55)', letterSpacing: '-0.01em' }}
         >
           {publishing ? 'Publishing…' : published ? `Live · ${confirmed.length + 1} in — open in Activity` : `Publish & invite ${crewSelected.length}`}
         </button>

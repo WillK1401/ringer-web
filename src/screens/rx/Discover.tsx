@@ -124,7 +124,7 @@ export function Discover() {
               >
                 <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.02em', color: on ? '#B8B2A6' : 'var(--rx-ghost)' }}>{d.dow}</span>
                 <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>{d.date}</span>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: d.play ? (on ? '#3FBF77' : 'var(--rx-green)') : 'transparent' }} />
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: d.play ? (on ? '#6FA84E' : 'var(--rx-green)') : 'transparent' }} />
               </button>
             );
           })}
@@ -178,7 +178,7 @@ export function Discover() {
           <button
             onClick={() => navigate(`/game/${upcoming[0].id}`)}
             aria-label="Open your next game"
-            style={{ width: '100%', fontSize: 16, fontWeight: 600, padding: 16, borderRadius: 99, border: 'none', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)', letterSpacing: '-0.01em' }}
+            style={{ width: '100%', fontSize: 16, fontWeight: 600, padding: 16, borderRadius: 99, border: 'none', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 24px -12px rgba(62, 82, 54,0.5)', letterSpacing: '-0.01em' }}
           >
             Open game
           </button>
@@ -267,7 +267,7 @@ export function Discover() {
               marginTop: 12,
               ...(joined
                 ? { background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
-                : { background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)' }),
+                : { background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 24px -12px rgba(62, 82, 54,0.5)' }),
             }}
           >
             {joined ? "You're in  ✓" : 'Join Game'}

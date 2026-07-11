@@ -1,6 +1,6 @@
 import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 import { AnimatePresence } from 'framer-motion';
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { PageTransition } from '../components/PageTransition';
 import { Discover } from '../screens/rx/Discover';
 import { Network } from '../screens/rx/Network';
@@ -24,6 +24,7 @@ import { Groups } from '../screens/Groups';
 import { GroupDetail } from '../screens/GroupDetail';
 import { MyGames } from '../screens/MyGames';
 import { TabBar } from '../components/rx/TabBar';
+import { Landing } from '../screens/rx/Landing';
 
 /**
  * iOS-first shell: a single phone-width column with the Core Experiences
@@ -52,7 +53,7 @@ function ProtectedLayout() {
           </div>
         </div>
       </SignedIn>
-      <SignedOut><RedirectToSignIn /></SignedOut>
+      <SignedOut><Landing /></SignedOut>
     </>
   );
 }

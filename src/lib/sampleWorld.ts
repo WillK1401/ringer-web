@@ -254,10 +254,10 @@ export const GROUP_PAYMENTS = {
     { value: '9/11', label: 'paid'        },
   ],
   rows: [
-    { init: 'MB', color: '#B0714F', name: 'Marcus', status: 'Paid',          statusColor: '#1C7C54' },
-    { init: 'PN', color: '#5B7AA8', name: 'Priya',  status: 'Paid',          statusColor: '#1C7C54' },
+    { init: 'MB', color: '#B0714F', name: 'Marcus', status: 'Paid',          statusColor: '#3E5236' },
+    { init: 'PN', color: '#5B7AA8', name: 'Priya',  status: 'Paid',          statusColor: '#3E5236' },
     { init: 'EL', color: '#A8635B', name: 'Emma',   status: 'Reminder sent', statusColor: '#B0714F' },
-    { init: 'W',  color: '#5B7A6E', name: 'You',    status: 'Paid',          statusColor: '#1C7C54' },
+    { init: 'W',  color: '#5B7A6E', name: 'You',    status: 'Paid',          statusColor: '#3E5236' },
   ],
 };
 

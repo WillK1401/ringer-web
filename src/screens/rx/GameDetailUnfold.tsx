@@ -229,7 +229,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
             border: 'none', cursor: 'pointer', transition: 'all .18s ease', letterSpacing: '-0.01em',
             ...(joined
               ? { background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
-              : { background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 26px -12px rgba(28,124,84,0.55)' }),
+              : { background: 'var(--rx-green)', color: '#fff', boxShadow: '0 12px 26px -12px rgba(62, 82, 54,0.55)' }),
           }}
         >
           {joined ? "You're in  ✓" : 'Join Game'}

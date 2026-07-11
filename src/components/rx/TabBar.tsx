@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router';
 
-const G = '#1C7C54';
+const G = '#3E5236';
 const GHOST = '#A39E94';
 
 function DiscoverIcon({ active }: { active: boolean }) {
@@ -79,7 +79,7 @@ export function TabBar() {
         <div style={{
           width: 46, height: 46, borderRadius: '50%', background: G,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 18px -6px rgba(28,124,84,0.5)',
+          boxShadow: '0 8px 18px -6px rgba(62, 82, 54,0.5)',
         }}>
           <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" /></svg>
         </div>

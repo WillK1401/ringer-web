@@ -1,8 +1,9 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-react';
+import { ClerkProvider, ClerkLoading, ClerkLoaded, useAuth } from '@clerk/clerk-react';
 import { RouterProvider } from 'react-router';
 import { useEffect } from 'react';
 import { router } from './routes';
 import { setTokenGetter } from '../lib/api';
+import { Splash } from '../screens/rx/Landing';
 
 const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -21,9 +22,12 @@ function AuthTokenSync() {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={CLERK_KEY} afterSignOutUrl="/sign-in">
-      <AuthTokenSync />
-      <RouterProvider router={router} />
+    <ClerkProvider publishableKey={CLERK_KEY} afterSignOutUrl="/">
+      <ClerkLoading><Splash /></ClerkLoading>
+      <ClerkLoaded>
+        <AuthTokenSync />
+        <RouterProvider router={router} />
+      </ClerkLoaded>
     </ClerkProvider>
   );
 }

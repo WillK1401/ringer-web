@@ -1,28 +1,30 @@
 import { SignUp as ClerkSignUp } from '@clerk/clerk-react';
 
+const FOREST = '#3E5236';
+const PAPER = '#FBFAF7';
+
 export function SignUp() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#F0EDE6' }}>
-      <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 28, color: '#042b2b', letterSpacing: '-0.02em', marginBottom: 8 }}>
-        ringer.
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'calc(env(safe-area-inset-top) + 40px) 24px calc(env(safe-area-inset-bottom) + 40px)', background: PAPER, fontFamily: "'Schibsted Grotesk', system-ui, sans-serif" }}>
+      <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: FOREST, marginBottom: 6 }}>
+        ringer<span style={{ color: '#6FA84E' }}>.</span>
       </div>
-      <div style={{ fontFamily: 'Inter', fontSize: 14, color: '#999', marginBottom: 40 }}>
-        Join the game.
+      <div className="serif" style={{ fontFamily: "'Newsreader', Georgia, serif", fontStyle: 'italic', fontSize: 15, color: '#6B665E', marginBottom: 34 }}>
+        Start your sporting life.
       </div>
       <ClerkSignUp
         routing="path"
         path="/sign-up"
         signInUrl="/sign-in"
-        afterSignUpUrl="/onboarding"
+        afterSignUpUrl="/"
         appearance={{
+          variables: { colorPrimary: FOREST, borderRadius: '14px', fontFamily: "'Schibsted Grotesk', system-ui, sans-serif" },
           elements: {
-            rootBox: { width: '100%', maxWidth: 340 },
-            card: { backgroundColor: 'rgba(0,0,0,0.03)', boxShadow: 'none', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 16 },
-            headerTitle: { fontFamily: 'Inter', color: '#1a1a1a' },
-            headerSubtitle: { fontFamily: 'Inter', color: '#999' },
-            formButtonPrimary: { backgroundColor: '#042b2b', fontFamily: 'Inter', borderRadius: 999 },
-            footerActionLink: { color: '#042b2b', fontFamily: 'Inter' },
-          }
+            rootBox: { width: '100%', maxWidth: 360 },
+            card: { backgroundColor: '#fff', boxShadow: 'none', border: '1px solid #EEEAE3', borderRadius: 20 },
+            formButtonPrimary: { backgroundColor: FOREST, borderRadius: 99, textTransform: 'none', fontWeight: 600 },
+            footerActionLink: { color: FOREST },
+          },
         }}
       />
     </div>

@@ -79,7 +79,7 @@ export function EditProfile() {
         <button
           onClick={onSave}
           aria-label="Save profile"
-          style={{ width: '100%', marginTop: 30, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, padding: 16, borderRadius: 99, cursor: 'pointer', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)', letterSpacing: '-0.01em' }}
+          style={{ width: '100%', marginTop: 30, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, padding: 16, borderRadius: 99, cursor: 'pointer', boxShadow: '0 12px 24px -12px rgba(62, 82, 54,0.5)', letterSpacing: '-0.01em' }}
         >
           {saved ? 'Saved ✓' : 'Save'}
         </button>
