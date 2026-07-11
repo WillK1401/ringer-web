@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { GATHER, PEOPLE } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
-import { gamesApi, groupsApi } from '../../lib/api';
+import { useNavigate } from 'react-router';
+import { gamesApi, groupsApi, connectionsApi } from '../../lib/api';
 
 const P = PEOPLE;
 
@@ -28,9 +29,7 @@ function computeKickoff(day: string | null, customDate: string, time: string | n
   if (customTime) {
     [hh, mm] = customTime.split(':').map(Number);
   } else if (time) {
-    const [h, m] = time.split(':').map(Number);
-    hh = h >= 6 && h <= 8 ? h + 12 : h; // evening quick-chips are PM
-    mm = m;
+    [hh, mm] = time.split(':').map(Number); // quick-chips are 24h
   } else {
     return null;
   }
@@ -39,9 +38,9 @@ function computeKickoff(day: string | null, customDate: string, time: string | n
   return d.toISOString();
 }
 
-type Phase = 'home' | 'sport' | 'where' | 'when' | 'size' | 'circles';
+type Phase = 'home' | 'sport' | 'where' | 'when' | 'size' | 'crew' | 'circles';
 
-const WIZARD_STEPS: Phase[] = ['sport', 'where', 'when', 'size'];
+const WIZARD_STEPS: Phase[] = ['sport', 'where', 'when', 'size', 'crew'];
 
 const SPORTS = ['Football', 'Tennis', 'Padel', 'Basketball', 'Running', 'Volleyball'];
 
@@ -54,8 +53,20 @@ const VENUES: Record<string, { name: string; sub: string }[]> = {
   ],
 };
 
-const DAYS  = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const TIMES = ['6:00', '7:00', '7:30', '8:00', '10:00', '12:00'];
+// Next seven days by name — no Today/Tomorrow ambiguity
+function nextDays(): { label: string; iso: string }[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return {
+      label: d.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ' + d.getDate(),
+      iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+    };
+  });
+}
+const DAYS = nextDays();
+const TIMES = ['18:00', '18:30', '19:00', '19:30', '20:00', '21:00'];
+const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
 
 const fieldStyle: React.CSSProperties = {
   width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '13px 16px',
@@ -105,6 +116,43 @@ export function Gather() {
   const [realGroups, setRealGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
   const [makeGroup, setMakeGroup] = useState(false);
+  const [crewOptions, setCrewOptions] = useState<any[]>(
+    GATHER.core.map(pp => ({ id: pp.id, name: pp.first, init: pp.init, color: pp.color, real: false }))
+  );
+  const [crewSel, setCrewSel] = useState<Set<string>>(new Set(GATHER.core.map(pp => pp.id)));
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [players, setPlayers] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    connectionsApi.getMyConnections()
+      .then(rows => {
+        if (!rows?.length) return;
+        const opts = rows.slice(0, 12).map(({ user }: any, i: number) => ({
+          id: user.id,
+          name: user.displayName,
+          init: (user.avatarInitials || user.displayName || '?').slice(0, 2).toUpperCase(),
+          color: PALETTE[i % PALETTE.length],
+          real: true,
+        }));
+        setCrewOptions(opts);
+        setCrewSel(new Set(opts.slice(0, 5).map((o: any) => o.id)));
+      })
+      .catch(() => {});
+  }, []);
+
+  // Live circle: poll the published game so joins light up as they land
+  useEffect(() => {
+    if (!gameId) return;
+    const tick = () => gamesApi.getGame(gameId).then(({ players: pl }) => setPlayers(pl || [])).catch(() => {});
+    tick();
+    const h = setInterval(tick, 8000);
+    return () => clearInterval(h);
+  }, [gameId]);
+
+  const crewSelected = crewOptions.filter(c => crewSel.has(c.id));
+  const confirmed = players.filter(pl => pl.status === 'confirmed');
+  const crewJoined = (c: any) => confirmed.some(pl => pl.userId === c.id);
 
   useEffect(() => {
     groupsApi.getMyGroups().then(gs => setRealGroups(gs || [])).catch(() => {});
@@ -128,7 +176,7 @@ export function Gather() {
     setPublishError('');
     // Activated weekly session defaults to the group's usual slot
     const kickoffAt = activated
-      ? computeKickoff('Wed', '', '7:30', '')
+      ? computeKickoff('Wed', '', '19:30', '')
       : computeKickoff(day, customDate, time, customTime);
     try {
       let groupId: string | undefined = activeGroup?.id;
@@ -140,7 +188,7 @@ export function Gather() {
         });
         groupId = g.id;
       }
-      await gamesApi.postGame({
+      const created = await gamesApi.postGame({
         groupId,
         venue: activated ? 'Trinity Bellwoods Park' : (venue ?? 'TBC'),
         sport: activated ? 'Football' : (sport ?? 'Football'),
@@ -150,6 +198,7 @@ export function Gather() {
         // Trust circles map directly onto the network-visibility tiers
         visibility: discovery ? 'public' : trusted ? 'second' : 'first',
       });
+      if (created?.id) setGameId(created.id);
       setPublished(true);
     } catch (e: any) {
       setPublishError(e.message || 'Could not publish — check your connection and try again.');
@@ -158,7 +207,7 @@ export function Gather() {
     }
   };
 
-  const count = 5 + (trusted ? 3 : 0) + (discovery ? 2 : 0);
+  const count = published ? confirmed.length + 1 : crewSelected.length + 1;
 
   // Human-readable "when" from either the quick chips or the native pickers
   const dateLabel = customDate
@@ -185,7 +234,7 @@ export function Gather() {
       >
         ‹ Back
       </button>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 22 }} aria-label={`Step ${stepIndex + 1} of 4`}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 22 }} aria-label={`Step ${stepIndex + 1} of ${WIZARD_STEPS.length}`}>
         {WIZARD_STEPS.map((s, i) => (
           <span key={s} style={{ width: i === stepIndex ? 22 : 7, height: 7, borderRadius: 99, background: i <= stepIndex ? 'var(--rx-green)' : '#E7E0D3', transition: 'all .2s ease' }} />
         ))}
@@ -241,7 +290,7 @@ export function Gather() {
               </div>
             </div>
             <button
-              onClick={() => { setActivated(true); setPhase('circles'); }}
+              onClick={() => { setActivated(true); setPhase('crew'); }}
               aria-label="Activate this week's Wednesday Football session"
               style={{ width: '100%', marginTop: 12, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 15, fontWeight: 600, padding: 15, borderRadius: 99, cursor: 'pointer', boxShadow: '0 12px 24px -12px rgba(28,124,84,0.5)', letterSpacing: '-0.01em' }}
             >
@@ -396,7 +445,7 @@ export function Gather() {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 12 }}>Day</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {DAYS.map(d => (
-              <button key={d} onClick={() => { setDay(d); setCustomDate(''); }} aria-label={d} aria-pressed={day === d} style={chip(day === d)}>{d}</button>
+              <button key={d.iso} onClick={() => { setDay(d.label); setCustomDate(d.iso); }} aria-label={d.label} aria-pressed={day === d.label} style={chip(day === d.label)}>{d.label}</button>
             ))}
           </div>
           <input
@@ -446,7 +495,7 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('when')}
           <h2 style={qStyle}>How many players?</h2>
-          <div className="serif" style={serifSub}>Including you. Anywhere from 1 to 22.</div>
+          <div className="serif" style={serifSub}>Your side, including you — most league games just need your own team.</div>
 
           {/* Stepper */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, margin: '10px 0 24px' }}>
@@ -472,7 +521,7 @@ export function Gather() {
 
           {/* Common presets */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 30 }}>
-            {[{ n: 4, l: '2-a-side' }, { n: 10, l: '5-a-side' }, { n: 12, l: '6-a-side' }, { n: 14, l: '7-a-side' }].map(p => (
+            {[{ n: 5, l: '5-a-side' }, { n: 6, l: '6-a-side' }, { n: 7, l: '7-a-side' }, { n: 11, l: '11-a-side' }].map(p => (
               <button key={p.n} onClick={() => setSize(p.n)} aria-label={p.l} style={{ fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 99, cursor: 'pointer', border: '1px solid #EEEAE3', background: size === p.n ? 'var(--rx-green-tint)' : '#fff', color: size === p.n ? 'var(--rx-green)' : 'var(--rx-faint)' }}>
                 {p.l}
               </button>
@@ -480,8 +529,8 @@ export function Gather() {
           </div>
 
           <button
-            onClick={() => { if (size == null) setSize(8); setPhase('circles'); }}
-            aria-label="Invite through trust"
+            onClick={() => { if (size == null) setSize(8); setPhase('crew'); }}
+            aria-label="Choose your crew"
             style={{
               width: '100%', border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99,
               letterSpacing: '-0.01em', cursor: 'pointer',
@@ -489,11 +538,53 @@ export function Gather() {
               boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)',
             }}
           >
-            Invite through trust
+            Choose your crew
           </button>
           <div style={{ textAlign: 'center', fontSize: 12.5, color: '#9C968C', marginTop: 12 }}>
             {[sport, venue, whenLabel].filter(Boolean).join(' · ')}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── CREW — pick your regulars first ───────────────────────────────────
+  if (phase === 'crew') {
+    return (
+      <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ padding: '8px 24px 120px' }}>
+          {wizardHeader(activated ? 'home' : 'size')}
+          <h2 style={qStyle}>Who's your usual crew?</h2>
+          <div className="serif" style={serifSub}>They're invited the moment you publish. Ringers come later, only if you need them.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {crewOptions.map(c => {
+              const on = crewSel.has(c.id);
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCrewSel(prev => { const n = new Set(prev); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
+                  aria-pressed={on}
+                  aria-label={`${on ? 'Remove' : 'Invite'} ${c.name}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', padding: 14,
+                    borderRadius: 18, cursor: 'pointer',
+                    ...(on ? { border: '1.5px solid var(--rx-green)', background: 'var(--rx-green-tint)' } : { border: '1px solid #EEEAE3', background: '#fff' }),
+                  }}
+                >
+                  <span style={{ width: 40, height: 40, borderRadius: '50%', background: c.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, flexShrink: 0 }}>{c.init}</span>
+                  <span style={{ flex: 1, fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{c.name}</span>
+                  {on && <span style={{ color: 'var(--rx-green)', fontSize: 15 }}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => setPhase('circles')}
+            aria-label="See your circle"
+            style={{ width: '100%', marginTop: 26, border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99, letterSpacing: '-0.01em', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)' }}
+          >
+            {crewSel.size > 0 ? `Continue with ${crewSel.size} regular${crewSel.size === 1 ? '' : 's'}` : 'Continue without regulars'}
+          </button>
         </div>
       </div>
     );
@@ -516,11 +607,11 @@ export function Gather() {
           </div>
           <h2 style={{ margin: '5px 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>Who's coming, who's close</h2>
           <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 18 }}>
-            {discovery
-              ? 'Your circles are open — trust is doing the inviting.'
-              : trusted
-              ? 'Your trusted network is in reach.'
-              : 'Your core five are in. Reach further if you need to.'}
+            {published
+              ? confirmed.length >= (size ?? 8) - 1
+                ? 'Full house — see you out there.'
+                : `Live — ${confirmed.length} in so far. Reach further if you need ringers.`
+              : `Your ${crewSelected.length} regular${crewSelected.length === 1 ? '' : 's'} will be asked first.`}
           </div>
 
           {/* CONCENTRIC RINGS */}
@@ -534,14 +625,29 @@ export function Gather() {
 
             <div style={{ position: 'absolute', left: 120, top: 120, width: 100, height: 100, borderRadius: '50%', background: 'var(--rx-green)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px -8px rgba(28,124,84,0.6)' }}>
               <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{count}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#C7E6D5', letterSpacing: '0.04em', marginTop: 2 }}>coming</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#C7E6D5', letterSpacing: '0.04em', marginTop: 2 }}>{published ? 'in' : 'invited'}</span>
             </div>
 
-            {GATHER.core.map((p, i) => (
-              <div key={p.id} style={{ position: 'absolute', ...CORE_POS[i] }}>
-                <Avatar person={p} size={44} ring="#FBFAF7" />
-              </div>
-            ))}
+            {crewSelected.slice(0, 5).map((c, i) => {
+              const isIn = !published || crewJoined(c);
+              return (
+                <div
+                  key={c.id}
+                  style={{
+                    position: 'absolute', ...CORE_POS[i],
+                    width: 44, height: 44, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 600, transition: 'all .25s ease',
+                    ...(isIn
+                      ? { border: '2px solid #FBFAF7', background: c.color, color: '#fff', opacity: published ? 1 : 0.9 }
+                      : { border: '2px dashed #C2B9A9', background: 'rgba(0,0,0,0.03)', color: '#A39A88' }),
+                  }}
+                  aria-label={published ? `${c.name} ${crewJoined(c) ? 'is in' : 'invited'}` : `${c.name} will be invited`}
+                >
+                  {c.init}
+                </div>
+              );
+            })}
 
             {GATHER.trusted.map(({ person }, i) => (
               <div
@@ -583,8 +689,20 @@ export function Gather() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-green-tint)', borderRadius: 16 }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>Core group · 5 in</div>
-                <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Your regulars, invited every week</div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>
+                  Your crew · {published ? `${crewSelected.filter(crewJoined).length} of ${crewSelected.length} in` : `${crewSelected.length} invited on publish`}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>
+                  {published ? 'Regulars first — ringers only fill the gaps' : 'Your regulars get first refusal'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-card)', borderRadius: 16 }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>1st connections</div>
+                <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Everyone you know can see and join this game</div>
               </div>
             </div>
 
@@ -593,26 +711,21 @@ export function Gather() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                   <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>Trusted network · 3 invited</div>
-                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Not strangers — vouched by your circle</div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>2nd connections reached</div>
+                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Friends of friends can now see this game</div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7, paddingLeft: 22 }}>
-                  {GATHER.trusted.map(({ person, reason }) => (
-                    <div key={person.id} style={{ fontSize: 12.5, color: 'var(--rx-muted)' }}>{reason}</div>
-                  ))}
                 </div>
               </div>
             ) : (
               <button
-                onClick={() => setTrusted(true)}
-                aria-label="Expand to your trusted network"
+                onClick={() => { setTrusted(true); if (gameId) gamesApi.widenVisibility(gameId, 'second').catch(() => {}); }}
+                aria-label="Reach 2nd connections"
                 style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 16px', background: 'var(--rx-card)', border: 'none', borderRadius: 16, cursor: 'pointer' }}
               >
                 <span style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid var(--rx-green)', color: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>+</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>Reach your trusted network</div>
-                  <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>3 vouched players could complete it</div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>Reach 2nd connections</div>
+                  <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Friends of friends — vouched, not strangers</div>
                 </div>
               </button>
             )}
@@ -622,21 +735,21 @@ export function Gather() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ width: 10, height: 10, borderRadius: '50%', border: '1.5px dashed var(--rx-faint)', flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>Open discovery · 2 nearby</div>
-                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Widest reach · players near you looking for a game</div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>Open to the Ringer network</div>
+                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Any nearby player looking for a game can join</div>
                   </div>
                 </div>
               </div>
             ) : (
               <button
-                onClick={() => setDiscovery(true)}
-                aria-label="Open to discovery, optional"
+                onClick={() => { setDiscovery(true); setTrusted(true); if (gameId) gamesApi.widenVisibility(gameId, 'public').catch(() => {}); }}
+                aria-label="Open to the wider Ringer network, last resort"
                 style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 16px', background: 'none', border: '1px dashed #D8D2C7', borderRadius: 16, cursor: 'pointer' }}
               >
                 <span style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--rx-ghost)', color: 'var(--rx-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>+</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--rx-body)' }}>Open to discovery</div>
-                  <div style={{ fontSize: 12, color: 'var(--rx-ghost)' }}>Optional — only if you want the widest reach</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--rx-body)' }}>Open to the Ringer network</div>
+                  <div style={{ fontSize: 12, color: 'var(--rx-ghost)' }}>Last resort — the widest reach for missing spots</div>
                 </div>
               </button>
             )}
@@ -647,7 +760,7 @@ export function Gather() {
       {/* keep-the-crew toggle lives with the publish action */}
       {/* Publish CTA */}
       <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 74%,rgba(251,250,247,0))' }}>
-        {!activated && !activeGroup && (
+        {!activated && !activeGroup && !published && (
           <button
             onClick={() => setMakeGroup(m => !m)}
             aria-pressed={makeGroup}
@@ -664,18 +777,18 @@ export function Gather() {
           </div>
         )}
         <button
-          onClick={publish}
+          onClick={published ? () => navigate('/activity') : publish}
           disabled={publishing}
-          aria-label="Publish this session"
+          aria-label={published ? 'Open this game in Activity' : 'Publish this session'}
           aria-busy={publishing}
           style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(28,124,84,0.55)', letterSpacing: '-0.01em' }}
         >
-          {publishing ? 'Publishing…' : `Publish · ${count} coming`}
+          {publishing ? 'Publishing…' : published ? `Live · ${confirmed.length + 1} in — open in Activity` : `Publish & invite ${crewSelected.length}`}
         </button>
       </div>
 
       {/* Publish takeover */}
-      {published && (
+      {published && !gameId && (
         <div className="scr" style={{ position: 'absolute', inset: 0, background: 'var(--rx-paper)', zIndex: 20, display: 'flex', flexDirection: 'column', padding: '70px 24px 100px', overflowY: 'auto' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--rx-green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
             <span style={{ color: 'var(--rx-green)', fontSize: 26 }}>✓</span>

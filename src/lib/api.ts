@@ -48,6 +48,8 @@ export const gamesApi = {
   getMyGames: () => request<{ hosting: any[]; playing: any[] }>('/games/mine'),
   postGame: (data: any) => request<any>('/games', { method: 'POST', body: JSON.stringify(data) }),
   joinGame: (id: string) => request<any>(`/games/${id}/join`, { method: 'POST' }),
+  widenVisibility: (id: string, visibility: string) =>
+    request<any>(`/games/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visibility }) }),
   cancelGame: (id: string, reason?: string) =>
     request<any>(`/games/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) }),
 };
