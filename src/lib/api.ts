@@ -31,7 +31,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || `HTTP ${res.status}`);
+    let msg = error.error || `HTTP ${res.status}`;
+    if (Array.isArray(error.issues) && error.issues.length) {
+      msg += `: ${error.issues.map((i: any) => `${i.path} — ${i.message}`).join('; ')}`;
+    }
+    throw new Error(msg);
   }
 
   return res.json();

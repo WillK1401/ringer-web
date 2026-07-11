@@ -178,6 +178,11 @@ export function Gather() {
     const kickoffAt = activated
       ? computeKickoff('Wed', '', '19:30', '')
       : computeKickoff(day, customDate, time, customTime);
+    if (!kickoffAt) {
+      setPublishError('Pick a day and kick-off time first — head back to the When step.');
+      setPublishing(false);
+      return;
+    }
     try {
       let groupId: string | undefined = activeGroup?.id;
       if (!groupId && makeGroup && !activated) {
