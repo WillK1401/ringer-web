@@ -25,6 +25,7 @@ import { GroupDetail } from '../screens/GroupDetail';
 import { MyGames } from '../screens/MyGames';
 import { TabBar } from '../components/rx/TabBar';
 import { Landing } from '../screens/rx/Landing';
+import { AccountSettings } from '../screens/rx/AccountSettings';
 
 /**
  * iOS-first shell: a single phone-width column with the Core Experiences
@@ -77,7 +78,7 @@ export const router = createBrowserRouter([
       { path: '/post',           Component: PostGame },
       { path: '/chat',           Component: ChatList },
       { path: '/chat/thread',    Component: ChatThread },
-      { path: '/settings',       Component: Profile },
+      { path: '/settings',       Component: AccountSettings },
       { path: '/connections',    Component: Connections },
       { path: '/users/:id',      Component: UserProfile },
       { path: '/notifications',  Component: Notifications },

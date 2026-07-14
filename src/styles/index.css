@@ -208,6 +208,7 @@ button:focus { outline: none; }
   --rx-ghost:        #A39E94;
   --rx-hairline:     #EFECE6;
   --rx-clay:         #B0714F;
+  --rx-error:        #C25A4E;
 
   font-family: 'Schibsted Grotesk', system-ui, sans-serif;
   color: var(--rx-ink);
