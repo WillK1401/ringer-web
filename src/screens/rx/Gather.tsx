@@ -44,15 +44,6 @@ const WIZARD_STEPS: Phase[] = ['sport', 'where', 'when', 'size', 'crew'];
 
 const SPORTS = ['Football', 'Tennis', 'Padel', 'Basketball', 'Running', 'Volleyball'];
 
-const VENUES: Record<string, { name: string; sub: string }[]> = {
-  default: [
-    { name: 'Trinity Bellwoods Park', sub: '12 min from you · floodlit' },
-    { name: 'High Park Courts',       sub: '18 min · books out fast'   },
-    { name: 'Padel Haus',             sub: '15 min · indoor'           },
-    { name: 'The Beaches',            sub: '25 min · by the water'     },
-  ],
-};
-
 // Next seven days by name — no Today/Tomorrow ambiguity
 function nextDays(): { label: string; iso: string }[] {
   return Array.from({ length: 7 }, (_, i) => {
@@ -67,6 +58,20 @@ function nextDays(): { label: string; iso: string }[] {
 const DAYS = nextDays();
 const TIMES = ['18:00', '18:30', '19:00', '19:30', '20:00', '21:00'];
 const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
+
+// Keyless address autocomplete via OpenStreetMap Nominatim (CORS-enabled).
+async function geocode(q: string): Promise<any[]> {
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) return [];
+  return res.json();
+}
+function venueLabel(r: any): { primary: string; secondary: string } {
+  const parts = String(r.display_name || '').split(',').map((x: string) => x.trim()).filter(Boolean);
+  const primary = r.name && r.name.length ? r.name : (parts[0] || 'Location');
+  const rest = parts[0] === primary ? parts.slice(1) : parts;
+  return { primary, secondary: rest.slice(0, 3).join(', ') };
+}
 
 const fieldStyle: React.CSSProperties = {
   width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '13px 16px',
@@ -105,8 +110,10 @@ export function Gather() {
   const [customSport, setCustomSport] = useState('');
   const [addingSport, setAddingSport] = useState(false);
   const [venue, setVenue]         = useState<string | null>(null);
-  const [customVenue, setCustomVenue] = useState('');
-  const [addingVenue, setAddingVenue] = useState(false);
+  const [venueQuery, setVenueQuery] = useState('');
+  const [venueResults, setVenueResults] = useState<any[]>([]);
+  const [venueSearching, setVenueSearching] = useState(false);
+  const [venueLatLng, setVenueLatLng] = useState<{ lat: number; lng: number } | null>(null);
   const [day, setDay]             = useState<string | null>(null);
   const [customDate, setCustomDate] = useState('');
   const [time, setTime]           = useState<string | null>(null);
@@ -140,6 +147,24 @@ export function Gather() {
       })
       .catch(() => {});
   }, []);
+
+  // Debounced address search — Uber/Maps-style type-ahead
+  useEffect(() => {
+    const q = venueQuery.trim();
+    if (q.length < 3) { setVenueResults([]); setVenueSearching(false); return; }
+    setVenueSearching(true);
+    const h = setTimeout(() => {
+      geocode(q).then(setVenueResults).catch(() => setVenueResults([])).finally(() => setVenueSearching(false));
+    }, 350);
+    return () => clearTimeout(h);
+  }, [venueQuery]);
+
+  const pickVenue = (r: any) => {
+    const { primary } = venueLabel(r);
+    setVenue(primary);
+    setVenueLatLng({ lat: Number(r.lat), lng: Number(r.lon) });
+    setPhase('when');
+  };
 
   // Live circle: poll the published game so joins light up as they land
   useEffect(() => {
@@ -202,6 +227,7 @@ export function Gather() {
         pitchCost: 0,
         // Trust circles map directly onto the network-visibility tiers
         visibility: discovery ? 'public' : trusted ? 'second' : 'first',
+        ...(venueLatLng ? { venueLatitude: venueLatLng.lat, venueLongitude: venueLatLng.lng } : {}),
       });
       if (created?.id) setGameId(created.id);
       setPublished(true);
@@ -378,61 +404,59 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('sport')}
           <h2 style={qStyle}>Where?</h2>
-          <div className="serif" style={serifSub}>Recent places, or type any address.</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {VENUES.default.map(v => (
-              <button
-                key={v.name}
-                onClick={() => { setVenue(v.name); setAddingVenue(false); setPhase('when'); }}
-                aria-label={v.name}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', padding: 16,
-                  borderRadius: 18, cursor: 'pointer',
-                  ...(venue === v.name
-                    ? { border: '1.5px solid var(--rx-green)', background: 'var(--rx-green-tint)' }
-                    : { border: '1px solid #EEEAE3', background: '#fff' }),
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{v.name}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2 }}>{v.sub}</div>
-                </div>
-                {venue === v.name && <span style={{ color: 'var(--rx-green)', fontSize: 15 }}>✓</span>}
-              </button>
-            ))}
+          <div className="serif" style={serifSub}>Start typing a venue or address.</div>
 
-            {/* Manual address entry */}
-            {addingVenue ? (
-              <div style={{ padding: 16, borderRadius: 18, border: '1.5px solid var(--rx-green)', background: '#fff' }}>
-                <input
-                  autoFocus
-                  value={customVenue}
-                  onChange={e => setCustomVenue(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && customVenue.trim()) { setVenue(customVenue.trim()); setPhase('when'); } }}
-                  placeholder="Venue name or address…"
-                  aria-label="Venue address"
-                  style={fieldStyle}
-                />
-                <button
-                  onClick={() => { if (customVenue.trim()) { setVenue(customVenue.trim()); setPhase('when'); } }}
-                  disabled={!customVenue.trim()}
-                  aria-label="Confirm venue"
-                  style={{ width: '100%', marginTop: 10, padding: 13, borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 600, cursor: customVenue.trim() ? 'pointer' : 'default', background: customVenue.trim() ? 'var(--rx-green)' : '#E4DFD5', color: customVenue.trim() ? '#fff' : '#A39A88' }}
-                >
-                  Use this address
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setAddingVenue(true)}
-                aria-label="Enter an address manually"
-                style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', padding: 16, borderRadius: 18, border: '1px dashed #D8D2C7', background: 'none', cursor: 'pointer' }}
-              >
-                <span style={{ width: 30, height: 30, borderRadius: '50%', border: '1.5px solid var(--rx-green)', color: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>+</span>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--rx-body)' }}>Enter an address</div>
-              </button>
-            )}
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--rx-ghost)', pointerEvents: 'none' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" /><path d="M20 20l-3.2-3.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            </span>
+            <input
+              autoFocus
+              value={venueQuery}
+              onChange={e => setVenueQuery(e.target.value)}
+              placeholder="Search a venue or address…"
+              aria-label="Search a venue or address"
+              style={{ ...fieldStyle, paddingLeft: 44 }}
+            />
           </div>
+
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column' }}>
+            {venueSearching && venueResults.length === 0 && (
+              <div style={{ padding: '14px 4px', fontSize: 13.5, color: 'var(--rx-faint)' }}>Searching…</div>
+            )}
+            {!venueSearching && venueQuery.trim().length >= 3 && venueResults.length === 0 && (
+              <div style={{ padding: '14px 4px', fontSize: 13.5, color: 'var(--rx-muted)' }}>No matches — try a fuller address.</div>
+            )}
+            {venueQuery.trim().length > 0 && venueQuery.trim().length < 3 && (
+              <div style={{ padding: '14px 4px', fontSize: 12.5, color: 'var(--rx-ghost)' }}>Keep typing…</div>
+            )}
+
+            {venueResults.map((r, i) => {
+              const { primary, secondary } = venueLabel(r);
+              return (
+                <button
+                  key={r.place_id ?? i}
+                  onClick={() => pickVenue(r)}
+                  aria-label={primary}
+                  style={{ display: 'flex', alignItems: 'flex-start', gap: 12, width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--rx-hairline)', padding: '14px 4px', cursor: 'pointer' }}
+                >
+                  <span style={{ marginTop: 1, color: 'var(--rx-green)', flexShrink: 0 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5.3-6-10a6 6 0 1112 0c0 4.7-6 10-6 10z" stroke="currentColor" strokeWidth="1.7" /><circle cx="12" cy="11" r="2.2" stroke="currentColor" strokeWidth="1.7" /></svg>
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{primary}</div>
+                    {secondary && (
+                      <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{secondary}</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {venueResults.length > 0 && (
+            <div style={{ marginTop: 16, fontSize: 11, color: 'var(--rx-ghost)' }}>Results from OpenStreetMap</div>
+          )}
         </div>
       </div>
     );
