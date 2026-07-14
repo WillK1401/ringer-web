@@ -190,16 +190,23 @@ export function Gather() {
     else setPhase('where');
   };
 
-  const [trusted, setTrusted]     = useState(false);
-  const [discovery, setDiscovery] = useState(false);
+  // Reach ladder: how wide the published game is open. Starts crew-only.
+  type Reach = 'invite' | 'first' | 'second' | 'public';
+  const [reach, setReach]         = useState<Reach>('invite');
   const [published, setPublished] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
 
+  const realInvitees = crewSelected.filter(c => c.real).map(c => c.id);
+
+  const widen = (target: Reach) => {
+    setReach(target);
+    if (gameId) gamesApi.widenVisibility(gameId, target).catch(() => {});
+  };
+
   const publish = async () => {
     setPublishing(true);
     setPublishError('');
-    // Activated weekly session defaults to the group's usual slot
     const kickoffAt = activated
       ? computeKickoff('Wed', '', '19:30', '')
       : computeKickoff(day, customDate, time, customTime);
@@ -208,13 +215,16 @@ export function Gather() {
       setPublishing(false);
       return;
     }
+    // Crew-only games start invite-only; without a real invite list, open to
+    // your connections so the game is at least visible to someone.
+    const startInviteOnly = !activated && !activeGroup && realInvitees.length > 0;
+    const initialVis: Reach = startInviteOnly ? 'invite' : 'first';
     try {
       let groupId: string | undefined = activeGroup?.id;
       if (!groupId && makeGroup && !activated) {
         const g = await groupsApi.create({
           name: `${sport ?? 'Game'} at ${venue ?? 'TBC'}`,
           defaultVenue: venue ?? undefined,
-          visibility: discovery ? 'public' : trusted ? 'second' : 'first',
         });
         groupId = g.id;
       }
@@ -225,11 +235,12 @@ export function Gather() {
         kickoffAt,
         playerCount: activated ? 10 : (size ?? 8),
         pitchCost: 0,
-        // Trust circles map directly onto the network-visibility tiers
-        visibility: discovery ? 'public' : trusted ? 'second' : 'first',
+        visibility: initialVis,
+        ...(startInviteOnly ? { invitees: realInvitees } : {}),
         ...(venueLatLng ? { venueLatitude: venueLatLng.lat, venueLongitude: venueLatLng.lng } : {}),
       });
       if (created?.id) setGameId(created.id);
+      setReach(initialVis);
       setPublished(true);
     } catch (e: any) {
       setPublishError(e.message || 'Could not publish — check your connection and try again.');
@@ -238,7 +249,11 @@ export function Gather() {
     }
   };
 
-  const count = published ? confirmed.length + 1 : crewSelected.length + 1;
+  // Roster maths — organiser is always the +1
+  const totalSlots = activated ? 10 : (size ?? 8);
+  const inCount    = confirmed.length + 1;
+  const toFill     = Math.max(0, totalSlots - inCount);
+  const invitedWaiting = players.filter(pl => pl.status === 'invited');
 
   // Human-readable "when" from either the quick chips or the native pickers
   const dateLabel = customDate
@@ -619,13 +634,56 @@ export function Gather() {
     );
   }
 
-  // ── TRUST CIRCLES ─────────────────────────────────────────────────────
+  // ── LIVE GAME — who's in, and how to fill the gaps ────────────────────
+  const backFromLive = () => {
+    setPhase(activated || activeGroup ? 'home' : 'size');
+    if (activeGroup) setActiveGroup(null);
+    setReach('invite');
+  };
+
+  // Build the team sheet: You + confirmed (in) + invited (awaiting) + open
+  type Slot = { key: string; init: string; name: string; state: 'you' | 'in' | 'invited' | 'open' };
+  const rosterInvited: any[] = published ? invitedWaiting : crewSelected;
+  const slots: Slot[] = [{ key: 'you', init: 'You', name: 'You', state: 'you' }];
+  confirmed.forEach((pl: any) => slots.push({
+    key: String(pl.id || pl.userId),
+    init: (pl.displayName || '?').slice(0, 2).toUpperCase(),
+    name: (pl.displayName || 'Player').split(' ')[0],
+    state: 'in',
+  }));
+  rosterInvited.forEach((c: any) => slots.push({
+    key: String(c.id || c.userId),
+    init: c.init || (c.displayName || '?').slice(0, 2).toUpperCase(),
+    name: c.name || (c.displayName || 'Player').split(' ')[0],
+    state: 'invited',
+  }));
+  for (let i = slots.length; i < totalSlots; i++) slots.push({ key: `open-${i}`, init: '', name: '', state: 'open' });
+  const teamSheet = slots.slice(0, Math.max(totalSlots, 1 + confirmed.length));
+
+  const REACH_ORDER: Reach[] = ['invite', 'first', 'second', 'public'];
+  const reachIdx = REACH_ORDER.indexOf(reach);
+  const LADDER: { key: Reach; title: string; sub: string; verb: string }[] = [
+    { key: 'first',  title: '1st connections',            sub: "Everyone you're connected to can join", verb: 'Invite' },
+    { key: 'second', title: '2nd connections',            sub: 'Friends of friends — vouched, not strangers', verb: 'Invite' },
+    { key: 'public', title: 'Open to the Ringer network', sub: 'Last resort — the widest reach for gaps', verb: 'Open' },
+  ];
+
+  const slotStyle = (st: Slot['state']): React.CSSProperties => ({
+    width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 13, fontWeight: 600, transition: 'all .2s ease',
+    ...(st === 'you' || st === 'in'
+      ? { background: 'var(--rx-green)', color: '#fff' }
+      : st === 'invited'
+      ? { border: '2px dashed #C9C2B4', color: '#A39A88', background: 'rgba(0,0,0,0.02)' }
+      : { border: '2px dashed #E2DBCD', background: 'transparent' }),
+  });
+
   return (
     <>
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ padding: '8px 24px 180px' }}>
+        <div style={{ padding: '8px 24px 210px' }}>
           <button
-            onClick={() => { setPhase(activated || activeGroup ? 'home' : 'size'); if (activeGroup) setActiveGroup(null); setTrusted(false); setDiscovery(false); }}
+            onClick={backFromLive}
             aria-label="Back"
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 10px' }}
           >
@@ -634,160 +692,82 @@ export function Gather() {
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-faint)' }}>
             {sessionTitle}
           </div>
-          <h2 style={{ margin: '5px 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>Who's coming, who's close</h2>
-          <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 18 }}>
+          <h2 style={{ margin: '5px 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            {published ? "Who's in" : 'Your team sheet'}
+          </h2>
+          <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 22 }}>
             {published
-              ? confirmed.length >= (size ?? 8) - 1
-                ? 'Full house — see you out there.'
-                : `Live — ${confirmed.length} in so far. Reach further if you need ringers.`
-              : `Your ${crewSelected.length} regular${crewSelected.length === 1 ? '' : 's'} will be asked first.`}
+              ? (toFill === 0 ? "Full — you're all set." : `${inCount} in · ${toFill} spot${toFill === 1 ? '' : 's'} to fill.`)
+              : `${crewSelected.length} regular${crewSelected.length === 1 ? '' : 's'} — asked the moment you publish.`}
           </div>
 
-          {/* CONCENTRIC RINGS */}
-          <div style={{ position: 'relative', width: 340, height: 340, margin: '0 auto 8px' }} aria-label={`${count} coming. Core group in. ${trusted ? 'Trusted network invited.' : ''} ${discovery ? 'Open discovery on.' : ''}`}>
-            <div style={{ position: 'absolute', width: 300, height: 300, left: 20, top: 20, borderRadius: '50%', border: `1px dashed ${discovery ? '#94A986' : '#E2DBCD'}` }} />
-            <div style={{ position: 'absolute', width: 240, height: 240, left: 50, top: 50, borderRadius: '50%', border: `1px solid ${trusted ? '#A8BE97' : '#E7E1D6'}` }} />
-            <div style={{ position: 'absolute', width: 148, height: 148, left: 96, top: 96, borderRadius: '50%', border: '1px solid #C3CDB4', background: 'rgba(62, 82, 54,0.08)' }} />
-
-            <div style={{ position: 'absolute', left: 0, right: 0, top: 0, textAlign: 'center', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: discovery ? 'var(--rx-green)' : '#B7AE9F' }}>Open discovery</div>
-            <div style={{ position: 'absolute', left: 0, right: 0, top: 32, textAlign: 'center', fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: trusted ? 'var(--rx-green)' : '#A39A88' }}>Trusted network</div>
-
-            <div style={{ position: 'absolute', left: 120, top: 120, width: 100, height: 100, borderRadius: '50%', background: 'var(--rx-green)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px -8px rgba(62, 82, 54,0.6)' }}>
-              <span style={{ fontSize: 30, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{count}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#CDD8C0', letterSpacing: '0.04em', marginTop: 2 }}>{published ? 'in' : 'invited'}</span>
-            </div>
-
-            {crewSelected.slice(0, 5).map((c, i) => {
-              const isIn = !published || crewJoined(c);
-              return (
-                <div
-                  key={c.id}
-                  style={{
-                    position: 'absolute', ...CORE_POS[i],
-                    width: 44, height: 44, borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 14, fontWeight: 600, transition: 'all .25s ease',
-                    ...(isIn
-                      ? { border: '2px solid #FBFAF7', background: c.color, color: '#fff', opacity: published ? 1 : 0.9 }
-                      : { border: '2px dashed #C2B9A9', background: 'rgba(0,0,0,0.03)', color: '#A39A88' }),
-                  }}
-                  aria-label={published ? `${c.name} ${crewJoined(c) ? 'is in' : 'invited'}` : `${c.name} will be invited`}
-                >
-                  {c.init}
-                </div>
-              );
-            })}
-
-            {GATHER.trusted.map(({ person }, i) => (
-              <div
-                key={person.id}
-                style={{
-                  position: 'absolute', ...TRUSTED_POS[i],
-                  width: 40, height: 40, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 600, transition: 'all .25s ease',
-                  ...(trusted
-                    ? { border: '2px solid #FBFAF7', background: person.color, color: '#fff' }
-                    : { border: '2px dashed #D8D2C7', background: 'rgba(0,0,0,0.03)', color: '#A39A88' }),
-                }}
-              >
-                {person.init}
-              </div>
-            ))}
-
-            {GATHER.discovery.map((p, i) => (
-              <div
-                key={p.id}
-                style={{
-                  position: 'absolute', ...DISCOVERY_POS[i],
-                  width: 36, height: 36, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 600, transition: 'all .25s ease',
-                  ...(discovery
-                    ? { border: '2px solid #FBFAF7', background: '#5B7A6E', color: '#fff' }
-                    : { border: '2px dashed #E2DBCD', background: 'rgba(0,0,0,0.02)', color: '#B7AE9F' }),
-                }}
-              >
-                {p.init}
+          {/* TEAM SHEET */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(58px, 1fr))', gap: 16, marginBottom: 8 }}>
+            {teamSheet.map(sl => (
+              <div key={sl.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div style={slotStyle(sl.state)}>{sl.init}</div>
+                <span style={{ fontSize: 11, textAlign: 'center', lineHeight: 1.2, fontWeight: sl.state === 'in' || sl.state === 'you' ? 600 : 400, color: sl.state === 'open' ? '#C2BBB0' : sl.state === 'invited' ? 'var(--rx-faint)' : 'var(--rx-ink-soft)' }}>
+                  {sl.state === 'open' ? 'Open' : sl.state === 'invited' ? (published ? 'Invited' : 'Asked') : sl.name}
+                </span>
               </div>
             ))}
           </div>
 
-          {/* CIRCLE STATUS + REASONS */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-green-tint)', borderRadius: 16 }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>
-                  Your crew · {published ? `${crewSelected.filter(crewJoined).length} of ${crewSelected.length} in` : `${crewSelected.length} invited on publish`}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>
-                  {published ? 'Regulars first — ringers only fill the gaps' : 'Your regulars get first refusal'}
-                </div>
+          {/* WIDEN LADDER — only once live and short of players */}
+          {published && toFill > 0 && (
+            <div style={{ marginTop: 26 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 12 }}>
+                Need more players?
               </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-card)', borderRadius: 16 }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>1st connections</div>
-                <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Everyone you know can see and join this game</div>
-              </div>
-            </div>
-
-            {trusted ? (
-              <div style={{ padding: '14px 16px', background: 'var(--rx-card)', borderRadius: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* crew — always asked first */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-green-tint)', borderRadius: 16 }}>
+                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--rx-green)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>✓</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>2nd connections reached</div>
-                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Friends of friends can now see this game</div>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>Your crew · asked first</div>
+                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>{confirmed.length} in · {invitedWaiting.length} still to reply</div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => { setTrusted(true); if (gameId) gamesApi.widenVisibility(gameId, 'second').catch(() => {}); }}
-                aria-label="Reach 2nd connections"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 16px', background: 'var(--rx-card)', border: 'none', borderRadius: 16, cursor: 'pointer' }}
-              >
-                <span style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid var(--rx-green)', color: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>+</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>Reach 2nd connections</div>
-                  <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Friends of friends — vouched, not strangers</div>
-                </div>
-              </button>
-            )}
 
-            {discovery ? (
-              <div style={{ padding: '14px 16px', background: 'var(--rx-card)', borderRadius: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', border: '1.5px dashed var(--rx-faint)', flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>Open to the Ringer network</div>
-                    <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>Any nearby player looking for a game can join</div>
-                  </div>
-                </div>
+                {LADDER.map(l => {
+                  const done = reachIdx >= REACH_ORDER.indexOf(l.key);
+                  return done ? (
+                    <div key={l.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-card)', borderRadius: 16 }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--rx-green)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>✓</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{l.title} · open</div>
+                        <div style={{ fontSize: 12, color: 'var(--rx-faint)' }}>{l.sub}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      key={l.key}
+                      onClick={() => widen(l.key)}
+                      aria-label={`${l.verb} ${l.title}`}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 16px', background: l.key === 'public' ? 'none' : 'var(--rx-card)', border: l.key === 'public' ? '1px dashed #D8D2C7' : 'none', borderRadius: 16, cursor: 'pointer' }}
+                    >
+                      <span style={{ width: 26, height: 26, borderRadius: '50%', border: `1.5px ${l.key === 'public' ? 'dashed var(--rx-ghost)' : 'solid var(--rx-green)'}`, color: l.key === 'public' ? 'var(--rx-faint)' : 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>+</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: l.key === 'public' ? 'var(--rx-body)' : 'var(--rx-ink)' }}>{l.title}</div>
+                        <div style={{ fontSize: 12, color: l.key === 'public' ? 'var(--rx-ghost)' : 'var(--rx-faint)' }}>{l.sub}</div>
+                      </div>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 12px', borderRadius: 99, flexShrink: 0 }}>{l.verb}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <button
-                onClick={() => { setDiscovery(true); setTrusted(true); if (gameId) gamesApi.widenVisibility(gameId, 'public').catch(() => {}); }}
-                aria-label="Open to the wider Ringer network, last resort"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '14px 16px', background: 'none', border: '1px dashed #D8D2C7', borderRadius: 16, cursor: 'pointer' }}
-              >
-                <span style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px dashed var(--rx-ghost)', color: 'var(--rx-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>+</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--rx-body)' }}>Open to the Ringer network</div>
-                  <div style={{ fontSize: 12, color: 'var(--rx-ghost)' }}>Last resort — the widest reach for missing spots</div>
-                </div>
-              </button>
-            )}
-          </div>
+            </div>
+          )}
+
+          {published && toFill === 0 && (
+            <div style={{ marginTop: 22, padding: 18, background: 'var(--rx-green-tint)', borderRadius: 18, fontSize: 14, lineHeight: 1.55, color: 'var(--rx-ink-soft)' }}>
+              Your side is full. Everyone's got the details — see you out there.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* keep-the-crew toggle lives with the publish action */}
-      {/* Publish CTA */}
+      {/* Bottom action */}
       <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 74%,rgba(251,250,247,0))' }}>
         {!activated && !activeGroup && !published && (
           <button
@@ -812,57 +792,9 @@ export function Gather() {
           aria-busy={publishing}
           style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(62, 82, 54,0.55)', letterSpacing: '-0.01em' }}
         >
-          {publishing ? 'Publishing…' : published ? `Live · ${confirmed.length + 1} in — open in Activity` : `Publish & invite ${crewSelected.length}`}
+          {publishing ? 'Publishing…' : published ? `Live · ${inCount} in — open in Activity` : `Publish & invite ${crewSelected.length}`}
         </button>
       </div>
-
-      {/* Publish takeover */}
-      {published && !gameId && (
-        <div className="scr" style={{ position: 'absolute', inset: 0, background: 'var(--rx-paper)', zIndex: 20, display: 'flex', flexDirection: 'column', padding: '70px 24px 100px', overflowY: 'auto' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--rx-green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <span style={{ color: 'var(--rx-green)', fontSize: 26 }}>✓</span>
-          </div>
-          <h3 style={{ margin: '0 0 6px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>Your world's in motion.</h3>
-          <div className="serif" style={{ fontSize: 16.5, color: 'var(--rx-muted)', marginBottom: 24 }}>
-            Invites rippled outward through trust. Here's what's already back.
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-              <Avatar person={P.marcus} size={40} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 600 }}>Marcus accepted</div>
-                <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>Core · moments ago</div>
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-green)' }}>In</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-              <Avatar person={P.emma} size={40} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 600 }}>Emma joined</div>
-                <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>Trusted · via Marcus</div>
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-green)' }}>In</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-              <Avatar person={P.priya} size={40} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 600 }}>Priya is checking</div>
-                <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>Core · usually replies fast</div>
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-faint)' }}>…</span>
-            </div>
-          </div>
-          <div style={{ marginTop: 24, padding: 18, background: 'var(--rx-card)', borderRadius: 18, fontSize: 14, lineHeight: 1.55, color: 'var(--rx-muted)' }}>
-            Every player who joins through trust makes next week's circle stronger — for you and for them.
-          </div>
-          <button
-            onClick={() => setPublished(false)}
-            style={{ width: '100%', marginTop: 'auto', background: 'none', border: '1px solid #E4E1DB', fontSize: 14, fontWeight: 600, color: 'var(--rx-body)', cursor: 'pointer', padding: 14, borderRadius: 99 }}
-          >
-            Adjust the circles
-          </button>
-        </div>
-      )}
     </>
   );
 }
