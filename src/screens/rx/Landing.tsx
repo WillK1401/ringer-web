@@ -4,7 +4,7 @@ const FOREST = '#3E5236';
 const PAPER  = '#FBFAF7';
 
 /**
- * Signed-out landing — a full-bleed forest-green splash in the Seed idiom:
+ * Signed-out landing · a full-bleed forest-green splash in the Seed idiom:
  * one wordmark, one line, one obvious action. Routes into Clerk's hosted
  * sign-in / sign-up.
  */
@@ -24,7 +24,7 @@ export function Landing() {
         padding: 'calc(env(safe-area-inset-top) + 40px) 32px calc(env(safe-area-inset-bottom) + 32px)',
         overflow: 'hidden',
       }}>
-        {/* Faint concentric-circle motif — the trust circles, at rest */}
+        {/* Faint concentric-circle motif · the trust circles, at rest */}
         <div aria-hidden style={{
           position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%,-50%)',
           width: 520, height: 520, borderRadius: '50%',
@@ -39,7 +39,7 @@ export function Landing() {
           ringer<span style={{ color: '#8FB56F' }}>.</span>
         </div>
 
-        {/* Value proposition — centred */}
+        {/* Value proposition · centred */}
         <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h1 style={{ margin: 0, fontSize: 40, lineHeight: 1.08, fontWeight: 700, letterSpacing: '-0.03em', maxWidth: 320 }}>
             Keep playing with the people who matter.
@@ -83,7 +83,7 @@ export function Landing() {
   );
 }
 
-/** Branded splash shown while Clerk boots — avoids a white flash on cold load. */
+/** Branded splash shown while Clerk boots · avoids a white flash on cold load. */
 export function Splash() {
   return (
     <div style={{

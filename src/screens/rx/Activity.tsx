@@ -156,7 +156,7 @@ export function Activity() {
             <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {realMsgs.length === 0 && (
                 <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', textAlign: 'center', padding: '18px 0' }}>
-                  No messages yet — say hello.
+                  No messages yet · say hello.
                 </div>
               )}
               {realMsgs.map((m: any) => m.isSystem ? (
@@ -195,7 +195,7 @@ export function Activity() {
             <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {!groupDetail?.games?.length && (
                 <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', textAlign: 'center', padding: '18px 0' }}>
-                  No sessions planned — gather one from the + tab.
+                  No sessions planned · gather one from the + tab.
                 </div>
               )}
               {(groupDetail?.games || []).map((g: any) => (
@@ -223,7 +223,7 @@ export function Activity() {
                 </div>
               ))}
               <div style={{ marginTop: 8, padding: 16, background: 'var(--rx-card)', borderRadius: 16, fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)' }}>
-                Anyone who joins one of this group's games becomes a member — communities grow through play.
+                Anyone who joins one of this group's games becomes a member · communities grow through play.
               </div>
             </div>
           )}
@@ -232,7 +232,7 @@ export function Activity() {
             <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {realPlayers.length === 0 && (
                 <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', textAlign: 'center', padding: '18px 0' }}>
-                  No one else yet — invites are out.
+                  No one else yet · invites are out.
                 </div>
               )}
               {realPlayers.map((pl: any) => (
@@ -420,14 +420,14 @@ export function Activity() {
     );
   }
 
-  // ── List view — your sporting home ────────────────────────────────────
+  // ── List view · your sporting home ────────────────────────────────────
   return (
     <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ padding: '6px 24px 120px' }}>
         <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Activity</div>
         <h2 style={{ margin: '5px 0 24px', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Your sporting home.</h2>
 
-        {/* NEEDS YOU — pinned action queue */}
+        {/* NEEDS YOU · pinned action queue */}
         {pending.length > 0 ? (
           <div style={{ marginBottom: 30 }}>
             <div style={eyebrow('var(--rx-green)')}>Needs you</div>
@@ -444,14 +444,14 @@ export function Activity() {
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => resolve(p.id)}
-                      aria-label={`${p.primaryLabel} — ${p.title}`}
+                      aria-label={`${p.primaryLabel} · ${p.title}`}
                       style={{ flex: 1, background: 'var(--rx-green)', color: '#fff', border: 'none', borderRadius: 11, padding: 10, fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}
                     >
                       {p.primaryLabel}
                     </button>
                     <button
                       onClick={() => resolve(p.id)}
-                      aria-label={`${p.secondaryLabel} — ${p.title}`}
+                      aria-label={`${p.secondaryLabel} · ${p.title}`}
                       style={{ flex: 1, background: 'none', color: 'var(--rx-faint)', border: '1px solid #E2DED7', borderRadius: 11, padding: 10, fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}
                     >
                       {p.secondaryLabel}
@@ -464,11 +464,11 @@ export function Activity() {
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--rx-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--rx-green)', flexShrink: 0 }} />
-            <span style={{ fontSize: 13.5, color: 'var(--rx-body)' }}>You're all set — nothing needs your attention.</span>
+            <span style={{ fontSize: 13.5, color: 'var(--rx-body)' }}>You're all set · nothing needs your attention.</span>
           </div>
         )}
 
-        {/* YOUR GAMES — real threads from the backend */}
+        {/* YOUR GAMES · real threads from the backend */}
         {realRows.length > 0 && (
           <>
             <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 14 }}>Your games</div>
@@ -490,7 +490,7 @@ export function Activity() {
           </>
         )}
 
-        {/* YOUR GROUPS — the calm, permanent list */}
+        {/* YOUR GROUPS · the calm, permanent list */}
         <div style={{ ...eyebrow('var(--rx-ghost)'), marginBottom: 14 }}>Your groups</div>
         {realGroups.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>

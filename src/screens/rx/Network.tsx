@@ -10,7 +10,7 @@ const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B
 interface Suggestion {
   person: Person;
   reason: string;
-  real: boolean; // true when backed by the API — Connect sends a real request
+  real: boolean; // true when backed by the API · Connect sends a real request
 }
 
 const SAMPLE_SUGGESTIONS: Suggestion[] = [
@@ -99,7 +99,7 @@ export function Network() {
             </div>
           </div>
 
-          {/* Between you — reciprocity */}
+          {/* Between you · reciprocity */}
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 14 }}>Between you</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 26 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-panel)', borderRadius: 14 }}>
@@ -215,7 +215,7 @@ export function Network() {
           })}
         </div>
 
-        {/* GROW YOUR CIRCLE — trusted introductions, never strangers */}
+        {/* GROW YOUR CIRCLE · trusted introductions, never strangers */}
         <div style={{ marginTop: 34 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 6 }}>
             Grow your circle
@@ -277,7 +277,7 @@ export function Network() {
         {/* Memory closer */}
         <div style={{ marginTop: 20, padding: 22, background: 'var(--rx-card)', borderRadius: 22 }}>
           <div className="serif" style={{ fontSize: 18, lineHeight: 1.5, color: 'var(--rx-body)' }}>
-            You've brought three people into this circle yourself — and six you met through football now play tennis with you too.
+            You've brought three people into this circle yourself · and six you met through football now play tennis with you too.
           </div>
         </div>
       </div>

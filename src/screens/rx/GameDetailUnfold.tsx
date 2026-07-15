@@ -34,7 +34,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
             ‹ Back to your Wednesday
           </button>
 
-          {/* THE CARD — same card, still open */}
+          {/* THE CARD · same card, still open */}
           <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rx-green)' }}>Your Wednesday football</span>
@@ -115,7 +115,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
             <h4 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }}>Why you can trust this game</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {[
-                <>This game has run <strong>11 weeks straight</strong> — never once cancelled.</>,
+                <>This game has run <strong>11 weeks straight</strong> · never once cancelled.</>,
                 <>You've played with <strong>Marcus 11 times</strong> this season.</>,
                 <><strong>Four of your regulars</strong> are already in.</>,
               ].map((line, i) => (
@@ -133,7 +133,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
                 'Matches your usual Wednesday football',
-                'Most players are intermediate — your level',
+                'Most players are intermediate · your level',
                 'Friendly-competitive, never cliquey',
                 'Regular post-game pint at the Foxes',
               ].map(line => (
@@ -219,7 +219,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
         </div>
       </div>
 
-      {/* Sticky Join — confidence earned first */}
+      {/* Sticky Join · confidence earned first */}
       <div style={{ position: 'absolute', bottom: 'calc(82px + env(safe-area-inset-bottom))', left: 0, right: 0, padding: '16px 20px 14px', background: 'linear-gradient(to top,#FBFAF7 72%,rgba(251,250,247,0))' }}>
         <button
           onClick={onJoin}

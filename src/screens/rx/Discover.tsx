@@ -65,7 +65,7 @@ export function Discover() {
     try {
       const res = await gamesApi.joinGame(g.id);
       if (res?.payment?.clientSecret) {
-        navigate(`/game/${g.id}`); // paid game — finish payment on the game page
+        navigate(`/game/${g.id}`); // paid game · finish payment on the game page
         return;
       }
       setJoinedIds(prev => new Set(prev).add(g.id));
@@ -130,7 +130,7 @@ export function Discover() {
           })}
         </div>
 
-        {/* Selected day context — the strip answers, not just decorates */}
+        {/* Selected day context · the strip answers, not just decorates */}
         {activeDay !== 2 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--rx-card)', borderRadius: 14, padding: '12px 16px', marginTop: -12, marginBottom: 26 }}>
             {dayPlan ? (
@@ -156,7 +156,7 @@ export function Discover() {
       <div style={{ padding: '0 24px 120px' }}>
         {upcoming.length > 0 ? (
         <>
-        {/* REAL — your next game */}
+        {/* REAL · your next game */}
         <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rx-green)' }}>Your next game</span>
@@ -165,7 +165,7 @@ export function Discover() {
           <h3 style={{ margin: '0 0 8px', fontSize: 23, lineHeight: 1.14, fontWeight: 700, letterSpacing: '-0.02em' }}>{upcoming[0].venue}</h3>
           <div className="serif" style={{ fontSize: 16.5, lineHeight: 1.4, color: '#5A554D', marginBottom: 18 }}>
             {fmtKick(upcoming[0].kickoffAt)} · {upcoming[0].sport ?? 'Football'}
-            {upcoming[0].role === 'organiser' ? " — you're hosting." : " — you're in."}
+            {upcoming[0].role === 'organiser' ? " · you're hosting." : " · you're in."}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 12px', borderRadius: 99 }}>
@@ -204,17 +204,17 @@ export function Discover() {
         </>
         ) : (
         <>
-        {/* HERO — Your Wednesday football */}
+        {/* HERO · Your Wednesday football */}
         <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rx-green)' }}>Your Wednesday football</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--rx-muted)' }}>7:30 PM</span>
           </div>
           <h3 style={{ margin: '0 0 8px', fontSize: 23, lineHeight: 1.14, fontWeight: 700, letterSpacing: '-0.02em' }}>
-            {joined ? "You're in — week 11 with the regulars" : 'Week 11 with the regulars'}
+            {joined ? "You're in · week 11 with the regulars" : 'Week 11 with the regulars'}
           </h3>
           <div className="serif" style={{ fontSize: 16.5, lineHeight: 1.4, color: '#5A554D', marginBottom: 18 }}>
-            The same crew you've played with all season — Marcus hosts, like every week.
+            The same crew you've played with all season. Marcus hosts, like every week.
           </div>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
             <Avatar person={P.marcus} ring="#F3EEE4" live liveRing="#F3EEE4" style={{ marginRight: -12, zIndex: 5 }} />
@@ -286,7 +286,7 @@ export function Discover() {
             <div style={{ marginTop: 12, background: '#FBF8F2', borderRadius: 16, padding: 16, fontSize: 13, lineHeight: 1.65, color: '#5A554D' }}>
               <div style={{ fontWeight: 600, color: 'var(--rx-ink)', marginBottom: 6 }}>Why you can trust tonight</div>
               · You've played this exact game <strong>11 weeks running</strong><br />
-              · Marcus has hosted every one — <strong>never cancelled</strong><br />
+              · Marcus has hosted every one · <strong>never cancelled</strong><br />
               · Priya, Dan &amp; Sofia are already in<br />
               · 12 minutes away · you're home by 9
             </div>
@@ -304,7 +304,7 @@ export function Discover() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Your Thursday tennis hit</div>
-                <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>Sofia — 5 weeks in a row · High Park</div>
+                <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>Sofia, 5 weeks in a row · High Park</div>
               </div>
               <Avatar person={P.sofia} size={34} />
             </div>
@@ -328,7 +328,7 @@ export function Discover() {
         </>
         )}
 
-        {/* NEARBY — real games your network can see */}
+        {/* NEARBY · real games your network can see */}
         {nearby.length > 0 && (
           <div style={{ marginTop: 36 }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 18 }}>Games near you</div>
@@ -417,12 +417,12 @@ export function Discover() {
               </div>
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)', marginBottom: 14 }}>
-              You said you wanted to try padel. This one's run by someone Priya's played with fourteen times — a soft landing, not a stranger's game.
+              You said you wanted to try padel. This one's run by someone Priya's played with fourteen times. A soft landing, not a stranger's game.
             </div>
             <button
               onClick={() => setInterested(true)}
               disabled={interested}
-              aria-label={interested ? 'Priya will introduce you' : 'Interested — ask Priya to introduce you'}
+              aria-label={interested ? 'Priya will introduce you' : 'Interested · ask Priya to introduce you'}
               style={{
                 width: '100%', fontSize: 13.5, fontWeight: 600, padding: 12, borderRadius: 99,
                 cursor: interested ? 'default' : 'pointer',
@@ -431,12 +431,12 @@ export function Discover() {
                   : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
               }}
             >
-              {interested ? "Priya will introduce you ✓" : "I'm interested — ask Priya to intro"}
+              {interested ? "Priya will introduce you ✓" : "I'm interested · ask Priya to intro"}
             </button>
           </div>
         </div>
 
-        {/* SEARCH — secondary, refines rather than replaces */}
+        {/* SEARCH · secondary, refines rather than replaces */}
         {searchOpen ? (
           <div style={{ marginTop: 30 }}>
             <input
@@ -464,7 +464,7 @@ export function Discover() {
               ))}
               {results.length === 0 && (
                 <div style={{ padding: '18px 0', fontSize: 13.5, color: 'var(--rx-muted)', borderTop: '1px solid var(--rx-hairline)' }}>
-                  Nothing matches — try another sport, or gather your own game.
+                  Nothing matches · try another sport, or gather your own game.
                 </div>
               )}
             </div>

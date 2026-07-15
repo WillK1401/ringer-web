@@ -48,7 +48,7 @@ export function EditProfile() {
 
         <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>Edit profile</h2>
         <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 28 }}>
-          Your sporting life tells your story — this is just the top of it.
+          Your sporting life tells your story · this is just the top of it.
         </div>
 
         {/* Avatar preview */}
@@ -71,7 +71,7 @@ export function EditProfile() {
             <label style={label} htmlFor="ep-oneliner">One line</label>
             <input id="ep-oneliner" style={field} value={p.oneLiner} onChange={set('oneLiner')} placeholder="e.g. Wednesday football. Sunday tennis." maxLength={48} />
             <div style={{ fontSize: 12, color: 'var(--rx-ghost)', marginTop: 6 }}>
-              One line, no bio — your history speaks for you.
+              One line, no bio · your history speaks for you.
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ export function EditProfile() {
           {saved ? 'Saved ✓' : 'Save'}
         </button>
 
-        {/* Account & payments — the legacy settings surface, demoted */}
+        {/* Account & payments · the legacy settings surface, demoted */}
         <div style={{ marginTop: 34 }}>
           <div style={{ ...label, marginBottom: 12 }}>Account</div>
           <button

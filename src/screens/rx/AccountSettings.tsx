@@ -49,7 +49,7 @@ export function AccountSettings() {
 
         <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>Payments &amp; account</h2>
         <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 30 }}>
-          The practical bits — how you get paid, and how you sign out.
+          The practical bits · how you get paid, and how you sign out.
         </div>
 
         {/* PAYMENTS */}
@@ -62,7 +62,7 @@ export function AccountSettings() {
             }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
-                {stripe === null ? 'Stripe' : stripe.chargesEnabled ? 'Stripe connected' : stripe.onboarded ? 'Stripe — finishing setup' : 'Stripe not connected'}
+                {stripe === null ? 'Stripe' : stripe.chargesEnabled ? 'Stripe connected' : stripe.onboarded ? 'Stripe · finishing setup' : 'Stripe not connected'}
               </div>
               <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginTop: 2 }}>
                 {stripe?.chargesEnabled

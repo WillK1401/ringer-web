@@ -44,7 +44,7 @@ const WIZARD_STEPS: Phase[] = ['sport', 'where', 'when', 'size', 'crew'];
 
 const SPORTS = ['Football', 'Tennis', 'Padel', 'Basketball', 'Running', 'Volleyball'];
 
-// Next seven days by name — no Today/Tomorrow ambiguity
+// Next seven days by name · no Today/Tomorrow ambiguity
 function nextDays(): { label: string; iso: string }[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -148,7 +148,7 @@ export function Gather() {
       .catch(() => {});
   }, []);
 
-  // Debounced address search — Uber/Maps-style type-ahead
+  // Debounced address search · Uber/Maps-style type-ahead
   useEffect(() => {
     const q = venueQuery.trim();
     if (q.length < 3) { setVenueResults([]); setVenueSearching(false); return; }
@@ -211,14 +211,13 @@ export function Gather() {
       ? computeKickoff('Wed', '', '19:30', '')
       : computeKickoff(day, customDate, time, customTime);
     if (!kickoffAt) {
-      setPublishError('Pick a day and kick-off time first — head back to the When step.');
+      setPublishError('Pick a day and kick-off time first · head back to the When step.');
       setPublishing(false);
       return;
     }
-    // Crew-only games start invite-only; without a real invite list, open to
-    // your connections so the game is at least visible to someone.
-    const startInviteOnly = !activated && !activeGroup && realInvitees.length > 0;
-    const initialVis: Reach = startInviteOnly ? 'invite' : 'first';
+    // Every game starts crew-only. Wider circles are always a deliberate
+    // choice on the ladder afterwards · never a default.
+    const initialVis: Reach = 'invite';
     try {
       let groupId: string | undefined = activeGroup?.id;
       if (!groupId && makeGroup && !activated) {
@@ -236,20 +235,20 @@ export function Gather() {
         playerCount: activated ? 10 : (size ?? 8),
         pitchCost: 0,
         visibility: initialVis,
-        ...(startInviteOnly ? { invitees: realInvitees } : {}),
+        ...(realInvitees.length ? { invitees: realInvitees } : {}),
         ...(venueLatLng ? { venueLatitude: venueLatLng.lat, venueLongitude: venueLatLng.lng } : {}),
       });
       if (created?.id) setGameId(created.id);
       setReach(initialVis);
       setPublished(true);
     } catch (e: any) {
-      setPublishError(e.message || 'Could not publish — check your connection and try again.');
+      setPublishError(e.message || 'Could not publish · check your connection and try again.');
     } finally {
       setPublishing(false);
     }
   };
 
-  // Roster maths — organiser is always the +1
+  // Roster maths · organiser is always the +1
   const totalSlots = activated ? 10 : (size ?? 8);
   const inCount    = confirmed.length + 1;
   const toFill     = Math.max(0, totalSlots - inCount);
@@ -288,7 +287,7 @@ export function Gather() {
     </>
   );
 
-  // ── HOME — who do you want to bring together? ─────────────────────────
+  // ── HOME · who do you want to bring together? ─────────────────────────
   if (phase === 'home') {
     return (
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
@@ -297,7 +296,7 @@ export function Gather() {
           <h2 style={qStyle}>Who do you want to bring together?</h2>
           <div className="serif" style={serifSub}>Activate your regulars, or start something new.</div>
 
-          {/* Real groups — activate this week's session */}
+          {/* Real groups · activate this week's session */}
           {realGroups.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
               {realGroups.map(g => (
@@ -320,7 +319,7 @@ export function Gather() {
             </div>
           )}
 
-          {/* Sample group — shown until you have a real one */}
+          {/* Sample group · shown until you have a real one */}
           {realGroups.length === 0 && (
           <div style={{ background: 'var(--rx-card)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 14 }}>This week</div>
@@ -370,7 +369,7 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('home')}
           <h2 style={qStyle}>What are you playing?</h2>
-          <div className="serif" style={serifSub}>One tap — you can always change it.</div>
+          <div className="serif" style={serifSub}>One tap · you can always change it.</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {SPORTS.map(s => (
               <button key={s} onClick={() => { setSport(s); setAddingSport(false); setPhase('where'); }} aria-label={s} style={chip(sport === s)}>
@@ -440,7 +439,7 @@ export function Gather() {
               <div style={{ padding: '14px 4px', fontSize: 13.5, color: 'var(--rx-faint)' }}>Searching…</div>
             )}
             {!venueSearching && venueQuery.trim().length >= 3 && venueResults.length === 0 && (
-              <div style={{ padding: '14px 4px', fontSize: 13.5, color: 'var(--rx-muted)' }}>No matches — try a fuller address.</div>
+              <div style={{ padding: '14px 4px', fontSize: 13.5, color: 'var(--rx-muted)' }}>No matches · try a fuller address.</div>
             )}
             {venueQuery.trim().length > 0 && venueQuery.trim().length < 3 && (
               <div style={{ padding: '14px 4px', fontSize: 12.5, color: 'var(--rx-ghost)' }}>Keep typing…</div>
@@ -539,7 +538,7 @@ export function Gather() {
         <div style={{ padding: '8px 24px 120px' }}>
           {wizardHeader('when')}
           <h2 style={qStyle}>How many players?</h2>
-          <div className="serif" style={serifSub}>Your side, including you — most league games just need your own team.</div>
+          <div className="serif" style={serifSub}>Your side, including you · most league games just need your own team.</div>
 
           {/* Stepper */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28, margin: '10px 0 24px' }}>
@@ -592,7 +591,7 @@ export function Gather() {
     );
   }
 
-  // ── CREW — pick your regulars first ───────────────────────────────────
+  // ── CREW · pick your regulars first ───────────────────────────────────
   if (phase === 'crew') {
     return (
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
@@ -634,7 +633,7 @@ export function Gather() {
     );
   }
 
-  // ── LIVE GAME — who's in, and how to fill the gaps ────────────────────
+  // ── LIVE GAME · who's in, and how to fill the gaps ────────────────────
   const backFromLive = () => {
     setPhase(activated || activeGroup ? 'home' : 'size');
     if (activeGroup) setActiveGroup(null);
@@ -664,8 +663,8 @@ export function Gather() {
   const reachIdx = REACH_ORDER.indexOf(reach);
   const LADDER: { key: Reach; title: string; sub: string; verb: string }[] = [
     { key: 'first',  title: '1st connections',            sub: "Everyone you're connected to can join", verb: 'Invite' },
-    { key: 'second', title: '2nd connections',            sub: 'Friends of friends — vouched, not strangers', verb: 'Invite' },
-    { key: 'public', title: 'Open to the Ringer network', sub: 'Last resort — the widest reach for gaps', verb: 'Open' },
+    { key: 'second', title: '2nd connections',            sub: 'Friends of friends · vouched, not strangers', verb: 'Invite' },
+    { key: 'public', title: 'Open to the Ringer network', sub: 'Last resort · the widest reach for gaps', verb: 'Open' },
   ];
 
   const slotStyle = (st: Slot['state']): React.CSSProperties => ({
@@ -689,16 +688,24 @@ export function Gather() {
           >
             ‹ {activated ? 'Gather' : 'Set-up'}
           </button>
-          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-faint)' }}>
-            {sessionTitle}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-faint)' }}>
+              {sessionTitle}
+            </span>
+            {published && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '3px 10px', borderRadius: 99 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--rx-green-live)' }} />
+                Live
+              </span>
+            )}
           </div>
           <h2 style={{ margin: '5px 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>
             {published ? "Who's in" : 'Your team sheet'}
           </h2>
           <div className="serif" style={{ fontSize: 15.5, color: 'var(--rx-muted)', marginBottom: 22 }}>
             {published
-              ? (toFill === 0 ? "Full — you're all set." : `${inCount} in · ${toFill} spot${toFill === 1 ? '' : 's'} to fill.`)
-              : `${crewSelected.length} regular${crewSelected.length === 1 ? '' : 's'} — asked the moment you publish.`}
+              ? (toFill === 0 ? "Full · you're all set." : `${inCount} in · ${toFill} spot${toFill === 1 ? '' : 's'} to fill.`)
+              : `${crewSelected.length} regular${crewSelected.length === 1 ? '' : 's'} · asked the moment you publish.`}
           </div>
 
           {/* TEAM SHEET */}
@@ -713,14 +720,14 @@ export function Gather() {
             ))}
           </div>
 
-          {/* WIDEN LADDER — only once live and short of players */}
+          {/* WIDEN LADDER · only once live and short of players */}
           {published && toFill > 0 && (
             <div style={{ marginTop: 26 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 12 }}>
                 Need more players?
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* crew — always asked first */}
+                {/* crew · always asked first */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--rx-green-tint)', borderRadius: 16 }}>
                   <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--rx-green)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>✓</span>
                   <div style={{ flex: 1 }}>
@@ -761,7 +768,7 @@ export function Gather() {
 
           {published && toFill === 0 && (
             <div style={{ marginTop: 22, padding: 18, background: 'var(--rx-green-tint)', borderRadius: 18, fontSize: 14, lineHeight: 1.55, color: 'var(--rx-ink-soft)' }}>
-              Your side is full. Everyone's got the details — see you out there.
+              Your side is full. Everyone's got the details · see you out there.
             </div>
           )}
         </div>
@@ -777,7 +784,7 @@ export function Gather() {
             style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', marginBottom: 10, padding: '11px 16px', borderRadius: 14, border: makeGroup ? '1.5px solid var(--rx-green)' : '1px dashed #D8D2C7', background: makeGroup ? 'var(--rx-green-tint)' : 'rgba(251,250,247,0.9)', cursor: 'pointer' }}
           >
             <span style={{ width: 20, height: 20, borderRadius: 6, border: makeGroup ? 'none' : '1.5px solid #C9C2B4', background: makeGroup ? 'var(--rx-green)' : 'transparent', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{makeGroup ? '✓' : ''}</span>
-            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--rx-ink-soft)' }}>Keep this crew together — make it a group</span>
+            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--rx-ink-soft)' }}>Keep this crew together · make it a group</span>
           </button>
         )}
         {publishError && (
@@ -792,7 +799,7 @@ export function Gather() {
           aria-busy={publishing}
           style={{ width: '100%', background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 17, fontWeight: 700, padding: 17, borderRadius: 99, cursor: publishing ? 'wait' : 'pointer', opacity: publishing ? 0.7 : 1, boxShadow: '0 14px 30px -12px rgba(62, 82, 54,0.55)', letterSpacing: '-0.01em' }}
         >
-          {publishing ? 'Publishing…' : published ? `Live · ${inCount} in — open in Activity` : `Publish & invite ${crewSelected.length}`}
+          {publishing ? 'Publishing…' : published ? 'Open in Activity' : `Publish & invite ${crewSelected.length}`}
         </button>
       </div>
     </>

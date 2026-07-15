@@ -42,7 +42,7 @@ export function SportingLife() {
           </button>
         </div>
 
-        {/* HERO — identity, one line, no bio */}
+        {/* HERO · identity, one line, no bio */}
         <div style={{ textAlign: 'center', padding: '6px 0 26px' }}>
           <div style={{
             width: 92, height: 92, borderRadius: '50%', background: me.color, color: '#fff',
@@ -56,7 +56,7 @@ export function SportingLife() {
           <div className="serif" style={{ fontSize: 17, color: 'var(--rx-body)' }}>{me.oneLiner}</div>
         </div>
 
-        {/* IDENTITY CHIPS — tap to verify, never self-written */}
+        {/* IDENTITY CHIPS · tap to verify, never self-written */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 32 }}>
           {TRAITS.map(t => {
             const on = openTrait === t.id;
@@ -83,7 +83,7 @@ export function SportingLife() {
           </div>
         )}
 
-        {/* WEEKLY ROUTINE — routine is identity */}
+        {/* WEEKLY ROUTINE · routine is identity */}
         <div style={eyebrow('var(--rx-green)')}>Weekly routine</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
           {ROUTINE.map(r => (
@@ -101,7 +101,7 @@ export function SportingLife() {
           ))}
         </div>
 
-        {/* COMMUNITIES — each opens its group hub */}
+        {/* COMMUNITIES · each opens its group hub */}
         <div style={eyebrow('var(--rx-ghost)')}>Communities</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 32 }}>
           {MY_COMMUNITIES.map(c => (
@@ -117,7 +117,7 @@ export function SportingLife() {
           ))}
         </div>
 
-        {/* TRUSTED BY — relationships, never ratings */}
+        {/* TRUSTED BY · relationships, never ratings */}
         <div style={eyebrow('var(--rx-ghost)')}>Trusted by</div>
         <div style={{ display: 'flex', marginBottom: 40 }}>
           {TRUSTED_BY.map((s, i) => (
@@ -128,7 +128,7 @@ export function SportingLife() {
           ))}
         </div>
 
-        {/* SPORTING JOURNEY — the story, told by other people */}
+        {/* SPORTING JOURNEY · the story, told by other people */}
         <div style={{ paddingTop: 26, borderTop: '1px solid var(--rx-hairline)' }}>
           <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 6 }}>Your sporting journey</div>
           <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 24 }}>{me.journeyLine}</div>
@@ -164,7 +164,7 @@ export function SportingLife() {
             </div>
           </div>
 
-          {/* MEMORIES — proof, not decoration */}
+          {/* MEMORIES · proof, not decoration */}
           <div style={{ marginTop: 32 }}>
             <div style={{ ...eyebrow('var(--rx-ghost)'), marginBottom: 14 }}>Memories</div>
             <div className="scr" style={{ display: 'flex', gap: 10, overflowX: 'auto' }}>
