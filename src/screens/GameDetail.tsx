@@ -142,7 +142,7 @@ export function GameDetail() {
       <div style={{ padding: '6px 24px 130px' }}>
         {/* Back + actions */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 18 }}>
-          <button onClick={() => navigate(-1)} aria-label="Back" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0' }}>‹ Back</button>
+          <button onClick={() => navigate(-1)} aria-label="Back" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0' }}>‹ Back</button>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => navigate(`/activity`)} style={{ padding: '8px 14px', borderRadius: 99, background: 'var(--rx-green-tint)', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-green)', cursor: 'pointer' }}>Chat</button>
             {isOrganiser && (
@@ -242,7 +242,7 @@ export function GameDetail() {
               <input value={guestPhone} onChange={e => setGuestPhone(e.target.value)} placeholder="Phone (optional)" aria-label="Guest phone" inputMode="tel" maxLength={30}
                 style={{ width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '12px 14px', borderRadius: 12, border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-ink)', outline: 'none', marginBottom: 12 }} />
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={addGuest} disabled={!guestName.trim() || guestBusy} style={{ flex: 1, background: guestName.trim() ? 'var(--rx-green)' : '#E4DFD5', color: guestName.trim() ? '#fff' : '#A39A88', border: 'none', fontSize: 14, fontWeight: 600, padding: 12, borderRadius: 99, cursor: guestName.trim() ? 'pointer' : 'default' }}>{guestBusy ? 'Adding…' : 'Add guest'}</button>
+                <button onClick={addGuest} disabled={!guestName.trim() || guestBusy} style={{ flex: 1, background: guestName.trim() ? 'var(--rx-green)' : '#E4DFD5', color: guestName.trim() ? '#fff' : '#7C7669', border: 'none', fontSize: 14, fontWeight: 600, padding: 12, borderRadius: 99, cursor: guestName.trim() ? 'pointer' : 'default' }}>{guestBusy ? 'Adding…' : 'Add guest'}</button>
                 <button onClick={() => { setGuestOpen(false); setGuestName(''); setGuestPhone(''); }} style={{ flex: 1, background: 'none', border: '1px solid #E2DED7', color: 'var(--rx-body)', fontSize: 14, fontWeight: 600, padding: 12, borderRadius: 99, cursor: 'pointer' }}>Cancel</button>
               </div>
             </div>

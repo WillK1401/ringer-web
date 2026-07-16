@@ -42,7 +42,7 @@ export function AccountSettings() {
         <button
           onClick={() => navigate('/profile/edit')}
           aria-label="Back to edit profile"
-          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 14px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 14px' }}
         >
           ‹ Edit profile
         </button>

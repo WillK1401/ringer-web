@@ -29,7 +29,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
           <button
             onClick={onBack}
             aria-label="Collapse back to recommendation"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 14px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 14px' }}
           >
             ‹ Back to your Wednesday
           </button>
@@ -161,9 +161,9 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
               <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 9px', borderRadius: 7 }}>Trusted host</span>
             </button>
             <div style={{ display: 'flex', gap: 20, marginTop: 16, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)', borderBottom: '1px solid var(--rx-hairline)' }}>
-              <div><div style={{ fontSize: 17, fontWeight: 700 }}>120+</div><div style={{ fontSize: 11.5, color: '#9C968C' }}>games hosted</div></div>
-              <div><div style={{ fontSize: 17, fontWeight: 700 }}>100%</div><div style={{ fontSize: 11.5, color: '#9C968C' }}>turned up</div></div>
-              <div><div style={{ fontSize: 17, fontWeight: 700 }}>2 yrs</div><div style={{ fontSize: 11.5, color: '#9C968C' }}>every week</div></div>
+              <div><div style={{ fontSize: 17, fontWeight: 700 }}>120+</div><div style={{ fontSize: 11.5, color: '#726D64' }}>games hosted</div></div>
+              <div><div style={{ fontSize: 17, fontWeight: 700 }}>100%</div><div style={{ fontSize: 11.5, color: '#726D64' }}>turned up</div></div>
+              <div><div style={{ fontSize: 17, fontWeight: 700 }}>2 yrs</div><div style={{ fontSize: 11.5, color: '#726D64' }}>every week</div></div>
             </div>
             {orgOpen && (
               <div style={{ marginTop: 14, fontSize: 14, lineHeight: 1.6, color: 'var(--rx-body)' }}>
@@ -189,7 +189,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
               <div style={{ position: 'relative', height: 6, background: '#EFEAE1', borderRadius: 99 }}>
                 <div style={{ position: 'absolute', left: '62%', top: '50%', transform: 'translate(-50%,-50%)', width: 16, height: 16, borderRadius: '50%', background: 'var(--rx-green)', border: '3px solid #FBFAF7', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
               </div>
-              <div style={{ fontSize: 12, color: '#9C968C', marginTop: 8 }}>Competitive, but nobody's keeping a league table.</div>
+              <div style={{ fontSize: 12, color: '#726D64', marginTop: 8 }}>Competitive, but nobody's keeping a league table.</div>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {['Intermediate level', 'Reliable weekly', 'Post-game drinks', 'Returning players', 'Welcomes newcomers'].map(tag => (
@@ -234,7 +234,7 @@ export function GameDetailUnfold({ joined, onJoin, onBack }: Props) {
         >
           {joined ? "You're in  ✓" : 'Join Game'}
         </button>
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9C968C', marginTop: 9 }}>
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#726D64', marginTop: 9 }}>
           {joined ? "See you at 7:30 · we'll add it to your week" : 'You + 4 regulars · 2 spots left'}
         </div>
       </div>

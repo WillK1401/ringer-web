@@ -123,7 +123,7 @@ export function SportingLife() {
           {TRUSTED_BY.map((s, i) => (
             <div key={s.label} style={{ flex: 1, ...(i > 0 ? { borderLeft: '1px solid var(--rx-hairline)', paddingLeft: 16 } : {}) }}>
               <div style={{ fontSize: 20, fontWeight: 700 }}>{s.value}</div>
-              <div style={{ fontSize: 11.5, color: '#9C968C' }}>{s.label}</div>
+              <div style={{ fontSize: 11.5, color: '#726D64' }}>{s.label}</div>
             </div>
           ))}
         </div>

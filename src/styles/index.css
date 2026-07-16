@@ -204,8 +204,8 @@ button:focus { outline: none; }
   --rx-ink-soft:     #3A362F;
   --rx-body:         #4A453E;
   --rx-muted:        #6B665E;
-  --rx-faint:        #8A857C;
-  --rx-ghost:        #A39E94;
+  --rx-faint:        #726D64;
+  --rx-ghost:        #7C7669;
   --rx-hairline:     #EFECE6;
   --rx-clay:         #B0714F;
   --rx-error:        #C25A4E;

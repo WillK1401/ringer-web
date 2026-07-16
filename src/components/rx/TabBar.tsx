@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router';
 
 const G = '#3E5236';
-const GHOST = '#A39E94';
+const GHOST = '#7C7669';
 
 function DiscoverIcon({ active }: { active: boolean }) {
   const c = active ? G : GHOST;
@@ -55,9 +55,17 @@ export function TabBar() {
   );
 
   const itemStyle: React.CSSProperties = {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-    background: 'none', border: 'none', cursor: 'pointer', padding: 0, minWidth: 52,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+    background: 'none', border: 'none', cursor: 'pointer', padding: 0, minWidth: 52, minHeight: 44,
   };
+
+  // Background pill behind the active icon — clearer selected state (Phase 2)
+  const iconWrap = (active: boolean): React.CSSProperties => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 46, height: 30, borderRadius: 99,
+    background: active ? 'var(--rx-green-tint)' : 'transparent',
+    transition: 'background 180ms cubic-bezier(0.22,1,0.36,1)',
+  });
 
   return (
     <div style={{
@@ -68,29 +76,30 @@ export function TabBar() {
       padding: '12px 18px calc(env(safe-area-inset-bottom))', flexShrink: 0, zIndex: 25,
     }}>
       <button onClick={() => navigate('/')} aria-label="Discover" aria-current={isDiscover ? 'page' : undefined} style={itemStyle}>
-        <DiscoverIcon active={isDiscover} />
+        <div style={iconWrap(isDiscover)}><DiscoverIcon active={isDiscover} /></div>
         {label('Discover', isDiscover)}
       </button>
       <button onClick={() => navigate('/network')} aria-label="Network" aria-current={isNetwork ? 'page' : undefined} style={itemStyle}>
-        <NetworkIcon active={isNetwork} />
+        <div style={iconWrap(isNetwork)}><NetworkIcon active={isNetwork} /></div>
         {label('Network', isNetwork)}
       </button>
       <button onClick={() => navigate('/gather')} aria-label="Gather" aria-current={isGather ? 'page' : undefined} style={{ ...itemStyle, marginTop: -6 }}>
         <div style={{
           width: 46, height: 46, borderRadius: '50%', background: G,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 18px -6px rgba(62, 82, 54,0.5)',
+          boxShadow: isGather ? '0 10px 22px -6px rgba(62,82,54,0.6)' : '0 8px 18px -6px rgba(62,82,54,0.5)',
+          transform: isGather ? 'scale(1.04)' : 'scale(1)', transition: 'all 180ms cubic-bezier(0.22,1,0.36,1)',
         }}>
           <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" /></svg>
         </div>
         {isGather && label('Gather', true)}
       </button>
       <button onClick={() => navigate('/activity')} aria-label="Activity" aria-current={isActivity ? 'page' : undefined} style={itemStyle}>
-        <InboxIcon active={isActivity} />
+        <div style={iconWrap(isActivity)}><InboxIcon active={isActivity} /></div>
         {label('Activity', isActivity)}
       </button>
       <button onClick={() => navigate('/profile')} aria-label="You" aria-current={isYou ? 'page' : undefined} style={itemStyle}>
-        <YouIcon active={isYou} />
+        <div style={iconWrap(isYou)}><YouIcon active={isYou} /></div>
         {label('You', isYou)}
       </button>
     </div>

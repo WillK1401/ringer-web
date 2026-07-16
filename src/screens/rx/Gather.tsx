@@ -275,7 +275,7 @@ export function Gather() {
       <button
         onClick={back(backTo)}
         aria-label="Back"
-        style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 18px' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 18px' }}
       >
         ‹ Back
       </button>
@@ -400,7 +400,7 @@ export function Gather() {
                 onClick={() => { if (customSport.trim()) { setSport(customSport.trim()); setAddingSport(false); setPhase('where'); } }}
                 disabled={!customSport.trim()}
                 aria-label="Confirm sport"
-                style={{ flexShrink: 0, padding: '0 20px', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 600, cursor: customSport.trim() ? 'pointer' : 'default', background: customSport.trim() ? 'var(--rx-green)' : '#E4DFD5', color: customSport.trim() ? '#fff' : '#A39A88' }}
+                style={{ flexShrink: 0, padding: '0 20px', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 600, cursor: customSport.trim() ? 'pointer' : 'default', background: customSport.trim() ? 'var(--rx-green)' : '#E4DFD5', color: customSport.trim() ? '#fff' : '#7C7669' }}
               >
                 Next
               </button>
@@ -521,7 +521,7 @@ export function Gather() {
               width: '100%', marginTop: 26, border: 'none', fontSize: 16, fontWeight: 700, padding: 17, borderRadius: 99,
               letterSpacing: '-0.01em', cursor: (day || customDate) && (time || customTime) ? 'pointer' : 'not-allowed',
               background: (day || customDate) && (time || customTime) ? 'var(--rx-green)' : '#E4DFD5',
-              color: (day || customDate) && (time || customTime) ? '#fff' : '#A39A88',
+              color: (day || customDate) && (time || customTime) ? '#fff' : '#7C7669',
             }}
           >
             Continue
@@ -583,7 +583,7 @@ export function Gather() {
           >
             Choose your crew
           </button>
-          <div style={{ textAlign: 'center', fontSize: 12.5, color: '#9C968C', marginTop: 12 }}>
+          <div style={{ textAlign: 'center', fontSize: 12.5, color: '#726D64', marginTop: 12 }}>
             {[sport, venue, whenLabel].filter(Boolean).join(' · ')}
           </div>
         </div>
@@ -673,7 +673,7 @@ export function Gather() {
     ...(st === 'you' || st === 'in'
       ? { background: 'var(--rx-green)', color: '#fff' }
       : st === 'invited'
-      ? { border: '2px dashed #C9C2B4', color: '#A39A88', background: 'rgba(0,0,0,0.02)' }
+      ? { border: '2px dashed #C9C2B4', color: '#7C7669', background: 'rgba(0,0,0,0.02)' }
       : { border: '2px dashed #E2DBCD', background: 'transparent' }),
   });
 
@@ -684,7 +684,7 @@ export function Gather() {
           <button
             onClick={backFromLive}
             aria-label="Back"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 10px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 10px' }}
           >
             ‹ {activated ? 'Gather' : 'Set-up'}
           </button>

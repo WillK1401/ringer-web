@@ -128,7 +128,7 @@ export function Activity() {
             <button
               onClick={() => setRealSel(null)}
               aria-label="Back to activity"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 14px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 14px' }}
             >
               ‹ Activity
             </button>
@@ -262,7 +262,7 @@ export function Activity() {
             <button
               onClick={() => setSel(null)}
               aria-label="Back to your groups"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 14px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 14px' }}
             >
               ‹ Your groups
             </button>
@@ -402,7 +402,7 @@ export function Activity() {
                 {GROUP_PAYMENTS.stats.map((s, i) => (
                   <div key={s.label} style={{ flex: 1, padding: '14px 0', ...(i > 0 ? { borderLeft: '1px solid var(--rx-hairline)', paddingLeft: 14 } : {}) }}>
                     <div style={{ fontSize: 19, fontWeight: 700 }}>{s.value}</div>
-                    <div style={{ fontSize: 11, color: '#9C968C' }}>{s.label}</div>
+                    <div style={{ fontSize: 11, color: '#726D64' }}>{s.label}</div>
                   </div>
                 ))}
               </div>

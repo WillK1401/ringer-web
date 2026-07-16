@@ -227,7 +227,7 @@ export function Discover() {
               fontSize: joined ? 12 : 11, fontWeight: 600,
               ...(joined
                 ? { border: '2px solid #F3EEE4', background: 'var(--rx-green)', color: '#fff' }
-                : { border: '2px dashed #C2B9A9', color: '#A39A88' }),
+                : { border: '2px dashed #C2B9A9', color: '#7C7669' }),
             }}>
               {joined ? 'You' : '+ you'}
             </div>
@@ -272,13 +272,13 @@ export function Discover() {
           >
             {joined ? "You're in  ✓" : 'Join Game'}
           </button>
-          <div style={{ textAlign: 'center', fontSize: 12.5, color: '#9C968C', marginTop: 11 }}>
+          <div style={{ textAlign: 'center', fontSize: 12.5, color: '#726D64', marginTop: 11 }}>
             {joined ? 'See you Wednesday · Trinity Bellwoods' : 'Same crew, same time · 2 spots left'}
           </div>
           <button
             onClick={() => setWhyOpen(w => !w)}
             aria-expanded={whyOpen}
-            style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer' }}
+            style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer' }}
           >
             {whyOpen ? 'Hide the trust' : 'Why you can trust tonight'}
           </button>
@@ -470,7 +470,7 @@ export function Discover() {
             </div>
             <button
               onClick={() => { setSearchOpen(false); setQuery(''); }}
-              style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#9C968C', padding: 10, cursor: 'pointer' }}
+              style={{ width: '100%', marginTop: 8, background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#726D64', padding: 10, cursor: 'pointer' }}
             >
               Close search
             </button>
@@ -478,7 +478,7 @@ export function Discover() {
         ) : (
           <button
             onClick={() => setSearchOpen(true)}
-            style={{ width: '100%', marginTop: 30, background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: '#9C968C', padding: 12, cursor: 'pointer' }}
+            style={{ width: '100%', marginTop: 30, background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: '#726D64', padding: 12, cursor: 'pointer' }}
           >
             Search all games
           </button>

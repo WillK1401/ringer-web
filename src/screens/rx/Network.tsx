@@ -61,7 +61,7 @@ export function Network() {
           <button
             onClick={() => setSel(null)}
             aria-label="Back to your circle"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0 20px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 20px' }}
           >
             ‹ Your circle
           </button>
@@ -87,15 +87,15 @@ export function Network() {
           <div style={{ display: 'flex', marginBottom: 26, borderTop: '1px solid var(--rx-hairline)', borderBottom: '1px solid var(--rx-hairline)' }}>
             <div style={{ flex: 1, padding: '16px 0' }}>
               <div style={{ fontSize: 19, fontWeight: 700 }}>{world.games}</div>
-              <div style={{ fontSize: 11.5, color: '#9C968C' }}>played together</div>
+              <div style={{ fontSize: 11.5, color: '#726D64' }}>played together</div>
             </div>
             <div style={{ flex: 1, padding: '16px 0 16px 16px', borderLeft: '1px solid var(--rx-hairline)' }}>
               <div style={{ fontSize: 19, fontWeight: 700 }}>{world.since}</div>
-              <div style={{ fontSize: 11.5, color: '#9C968C' }}>since</div>
+              <div style={{ fontSize: 11.5, color: '#726D64' }}>since</div>
             </div>
             <div style={{ flex: 1, padding: '16px 0 16px 16px', borderLeft: '1px solid var(--rx-hairline)' }}>
               <div style={{ fontSize: 19, fontWeight: 700 }}>{world.usual}</div>
-              <div style={{ fontSize: 11.5, color: '#9C968C' }}>usually</div>
+              <div style={{ fontSize: 11.5, color: '#726D64' }}>usually</div>
             </div>
           </div>
 
@@ -251,7 +251,7 @@ export function Network() {
 
             {/* Invite from contacts */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', border: '2px dashed #C2B9A9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#A39A88', flexShrink: 0 }}>+</div>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', border: '2px dashed #C2B9A9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#7C7669', flexShrink: 0 }}>+</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Invite from contacts</div>
                 <div style={{ fontSize: 12.5, color: 'var(--rx-muted)', marginTop: 2 }}>Bring someone who isn't on Ringer yet</div>
