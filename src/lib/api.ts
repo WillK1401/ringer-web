@@ -48,7 +48,11 @@ export const gamesApi = {
     const qs = new URLSearchParams(params as any).toString();
     return request<any[]>(`/games${qs ? `?${qs}` : ''}`);
   },
-  getGame: (id: string) => request<{ game: any; players: any[] }>(`/games/${id}`),
+  getGame: (id: string) => request<{ game: any; players: any[]; guests?: any[] }>(`/games/${id}`),
+  addGuest: (id: string, name: string, phone?: string) =>
+    request<any>(`/games/${id}/guests`, { method: 'POST', body: JSON.stringify({ name, phone }) }),
+  removeGuest: (id: string, guestId: string) =>
+    request<any>(`/games/${id}/guests/${guestId}`, { method: 'DELETE' }),
   getMyGames: () => request<{ hosting: any[]; playing: any[] }>('/games/mine'),
   postGame: (data: any) => request<any>('/games', { method: 'POST', body: JSON.stringify(data) }),
   joinGame: (id: string) => request<any>(`/games/${id}/join`, { method: 'POST' }),

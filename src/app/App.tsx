@@ -22,7 +22,14 @@ function AuthTokenSync() {
 
 export default function App() {
   return (
-    <ClerkProvider publishableKey={CLERK_KEY} afterSignOutUrl="/">
+    <ClerkProvider
+      publishableKey={CLERK_KEY}
+      afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
       <ClerkLoading><Splash /></ClerkLoading>
       <ClerkLoaded>
         <AuthTokenSync />

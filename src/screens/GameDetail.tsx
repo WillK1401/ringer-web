@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { ArrowLeft, MessageCircle, Trash2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
-import { useUser } from '@clerk/clerk-react';
-import { Spinner } from '../components/Spinner';
 import { gamesApi, usersApi } from '../lib/api';
 import { formatDate, formatTime } from '../lib/utils';
 
@@ -11,366 +8,303 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
 
 type State = 'idle' | 'paying' | 'success' | 'error' | 'cancelling';
 
+const eyebrow: React.CSSProperties = {
+  fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+  color: 'var(--rx-ghost)', marginBottom: 14,
+};
+const h4: React.CSSProperties = { margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' };
+
+function initials(name?: string): string {
+  if (!name) return '?';
+  return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+}
+
 export function GameDetail() {
   const navigate = useNavigate();
   const { id }   = useParams<{ id: string }>();
-  const { user: clerkUser } = useUser();
-  const [data,        setData]        = useState<{ game: any; players: any[] } | null>(null);
-  const [myProfile,   setMyProfile]   = useState<any>(null);
-  const [organiser,   setOrganiser]   = useState<any>(null);
-  const [loading,     setLoading]     = useState(true);
+  const [data,       setData]       = useState<{ game: any; players: any[]; guests?: any[] } | null>(null);
+  const [myProfile,  setMyProfile]  = useState<any>(null);
+  const [organiser,  setOrganiser]  = useState<any>(null);
+  const [loading,    setLoading]    = useState(true);
   const [state,      setState]      = useState<State>('idle');
   const [errorMsg,   setErrorMsg]   = useState('');
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [cancelReason,      setCancelReason]      = useState('');
+  const [showCancel, setShowCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+
+  // Guest form
+  const [guestOpen,  setGuestOpen]  = useState(false);
+  const [guestName,  setGuestName]  = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestBusy,  setGuestBusy]  = useState(false);
+
+  const refresh = () => id && gamesApi.getGame(id).then(setData).catch(() => {});
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      gamesApi.getGame(id),
-      usersApi.getMe().catch(() => null),
-    ]).then(([gameData, profile]) => {
-      setData(gameData);
-      setMyProfile(profile);
-      if (gameData?.game?.organiserId) {
-        usersApi.getUser(gameData.game.organiserId).then(setOrganiser).catch(() => {});
-      }
-    }).finally(() => setLoading(false));
+    Promise.all([gamesApi.getGame(id), usersApi.getMe().catch(() => null)])
+      .then(([gameData, profile]) => {
+        setData(gameData);
+        setMyProfile(profile);
+        if (gameData?.game?.organiserId) usersApi.getUser(gameData.game.organiserId).then(setOrganiser).catch(() => {});
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   const handleClaim = async () => {
     if (!id || !data) return;
-    setState('paying');
-    setErrorMsg('');
+    setState('paying'); setErrorMsg('');
     try {
       const res = await gamesApi.joinGame(id);
       const { clientSecret } = res.payment || {};
       if (clientSecret) {
         const stripe = await stripePromise;
         if (!stripe) throw new Error('Stripe not loaded');
-        const { error } = await stripe.confirmPayment({
-          clientSecret,
-          confirmParams: { return_url: `${window.location.origin}/game/${id}?success=1` },
-        });
+        const { error } = await stripe.confirmPayment({ clientSecret, confirmParams: { return_url: `${window.location.origin}/game/${id}?success=1` } });
         if (error) throw new Error(error.message);
       }
       setState('success');
-    } catch (e: any) {
-      setState('error');
-      setErrorMsg(e.message || 'Something went wrong');
-    }
+    } catch (e: any) { setState('error'); setErrorMsg(e.message || 'Something went wrong'); }
   };
 
   const handleCancel = async () => {
     if (!id) return;
-    setState('cancelling');
-    setErrorMsg('');
+    setState('cancelling'); setErrorMsg('');
     try {
       await gamesApi.cancelGame(id, cancelReason || undefined);
       navigate('/', { replace: true });
-    } catch (e: any) {
-      setState('idle');
-      setErrorMsg(e.message || 'Failed to cancel game');
-      setShowCancelConfirm(false);
-    }
+    } catch (e: any) { setState('idle'); setErrorMsg(e.message || 'Failed to cancel game'); setShowCancel(false); }
   };
 
-  if (loading) return (
-    <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
-      <Spinner />
-    </div>
-  );
+  const addGuest = async () => {
+    if (!id || !guestName.trim()) return;
+    setGuestBusy(true);
+    try {
+      await gamesApi.addGuest(id, guestName.trim(), guestPhone.trim() || undefined);
+      setGuestName(''); setGuestPhone(''); setGuestOpen(false);
+      refresh();
+    } catch (e: any) { setErrorMsg(e.message || 'Could not add guest'); }
+    finally { setGuestBusy(false); }
+  };
+
+  const dropGuest = async (guestId: string) => {
+    if (!id) return;
+    await gamesApi.removeGuest(id, guestId).catch(() => {});
+    refresh();
+  };
+
+  if (loading) {
+    return (
+      <div className="scr" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: 14, color: 'var(--rx-faint)' }}>Loading…</span>
+      </div>
+    );
+  }
 
   if (state === 'success') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#F0EDE6' }}>
-        <div
-          className="flex items-center justify-center rounded-full"
-          style={{ width: 72, height: 72, backgroundColor: 'rgba(4,43,43,0.08)', marginBottom: 24 }}
-        >
-          <CheckCircle2 size={32} strokeWidth={1.5} color="#042b2b" />
+      <div className="scr" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', textAlign: 'center' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--rx-green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
+          <span style={{ color: 'var(--rx-green)', fontSize: 28 }}>✓</span>
         </div>
-        <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 28, color: '#1a1a1a', marginBottom: 8, textAlign: 'center', letterSpacing: '-0.02em' }}>
-          Spot Claimed
-        </h1>
-        <p style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', textAlign: 'center', marginBottom: 40, fontWeight: 400 }}>
-          Payment confirmed. Your spot is secured.
-        </p>
-        <button
-          onClick={() => navigate(`/chat?gameId=${id}&name=${data?.game?.venue}`)}
-          className="btn-primary"
-          style={{ backgroundColor: '#042b2b', color: '#F0EDE6', fontFamily: 'Inter', fontWeight: 600, fontSize: 16, padding: '16px 40px', borderRadius: 50, border: 'none', cursor: 'pointer', marginBottom: 16, minHeight: 52 }}
-        >
-          Open game chat
-        </button>
-        <button
-          onClick={() => navigate('/')}
-          style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400, background: 'none', border: 'none', cursor: 'pointer' }}
-        >
-          Back to games
-        </button>
+        <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>You're in</h1>
+        <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 32 }}>Your spot is secured. See you out there.</div>
+        <button onClick={() => navigate('/activity')} style={{ background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, padding: '15px 32px', borderRadius: 99, cursor: 'pointer' }}>Open in Activity</button>
+        <button onClick={() => navigate('/')} style={{ marginTop: 14, background: 'none', border: 'none', fontSize: 14, color: 'var(--rx-faint)', cursor: 'pointer' }}>Back to Discover</button>
       </div>
     );
   }
 
   const game        = data?.game;
-  const players     = data?.players?.filter((p) => p.status === 'confirmed') ?? [];
+  const players     = (data?.players ?? []).filter((p) => p.status === 'confirmed');
+  const guests      = data?.guests ?? [];
   const totalSlots  = game?.playerCount ?? 10;
-  const filled      = players.length + 1;
+  const filled      = players.length + guests.length + 1; // + organiser
   const open        = Math.max(0, totalSlots - filled);
   const pricePence  = game?.costPerPlayer ?? 0;
-  const priceStr    = `£${(pricePence / 100).toFixed(2)}`;
-  const pitchCostStr = `£${((pricePence * totalSlots) / 100).toFixed(2)}`;
+  const priceStr    = (p: number) => `£${(p / 100).toFixed(2)}`;
 
-  const isOrganiser = myProfile?.id && game?.organiserId &&
-    String(myProfile.id) === String(game.organiserId);
+  const isOrganiser = myProfile?.id && game?.organiserId && String(myProfile.id) === String(game.organiserId);
+  const alreadyIn   = players.some((p) => myProfile?.id && String(p.userId) === String(myProfile.id));
 
+  // Guests are covered by the organiser's cost.
+  const yourCost = isOrganiser ? pricePence * (1 + guests.length) : pricePence;
+
+  // Build the squad grid: organiser, confirmed players, guests, then open slots
   const squad = [
-    { name: isOrganiser ? 'You' : 'Organiser', isYou: isOrganiser, isOpen: false, isOrg: true },
-    ...players.map((p: any) => ({ name: p.displayName?.split(' ')[0] ?? '?', isYou: false, isOpen: false, isOrg: false })),
-    ...Array(open).fill({ name: 'Open', isYou: false, isOpen: true, isOrg: false }),
-  ];
+    { key: 'org', label: isOrganiser ? 'You' : (organiser?.displayName?.split(' ')[0] ?? 'Host'), init: isOrganiser ? 'You' : initials(organiser?.displayName), kind: 'org' as const },
+    ...players.map((p: any) => ({ key: p.id, label: p.displayName?.split(' ')[0] ?? '?', init: initials(p.displayName), kind: 'player' as const })),
+    ...guests.map((g: any) => ({ key: g.id, label: g.name.split(' ')[0], init: initials(g.name), kind: 'guest' as const, guestId: g.id })),
+    ...Array.from({ length: open }, (_, i) => ({ key: `open-${i}`, label: 'Open', init: '', kind: 'open' as const })),
+  ].slice(0, totalSlots);
 
   return (
-    <div className="min-h-screen pb-[80px]" style={{ backgroundColor: '#F0EDE6' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
-
+    <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ padding: '6px 24px 130px' }}>
         {/* Back + actions */}
-        <div style={{ paddingTop: 24, paddingBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button
-            onClick={() => navigate(-1)}
-            aria-label="Back"
-            style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0' }}
-          >
-            <ArrowLeft size={22} strokeWidth={1.5} color="#1a1a1a" />
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button
-              onClick={() => navigate(`/chat?gameId=${id}&name=${encodeURIComponent(game?.venue ?? 'Game')}&sub=${encodeURIComponent(game?.kickoffAt ? formatDate(game.kickoffAt) + ' · ' + formatTime(game.kickoffAt) : '')}`)}
-              style={{ padding: '8px 14px', borderRadius: 50, backgroundColor: 'rgba(4,43,43,0.08)', display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer' }}
-            >
-              <MessageCircle size={14} strokeWidth={1.5} color="#042b2b" aria-hidden="true" />
-              <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#042b2b', fontWeight: 500 }}>Chat</span>
-            </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 18 }}>
+          <button onClick={() => navigate(-1)} aria-label="Back" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#9C968C', cursor: 'pointer', padding: '6px 0' }}>‹ Back</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => navigate(`/activity`)} style={{ padding: '8px 14px', borderRadius: 99, background: 'var(--rx-green-tint)', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-green)', cursor: 'pointer' }}>Chat</button>
             {isOrganiser && (
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                style={{ padding: '8px 14px', borderRadius: 50, backgroundColor: 'rgba(200,16,46,0.08)', display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer' }}
-              >
-                <Trash2 size={14} strokeWidth={1.5} color="#c8102e" aria-hidden="true" />
-                <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#c8102e', fontWeight: 500 }}>Cancel</span>
-              </button>
+              <button onClick={() => setShowCancel(true)} style={{ padding: '8px 14px', borderRadius: 99, background: 'rgba(194,90,78,0.10)', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-error)', cursor: 'pointer' }}>Cancel</button>
             )}
           </div>
         </div>
 
-        {/* Venue + subtitle */}
-        <div style={{ paddingBottom: 32 }}>
-          <h1 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 42, color: '#1a1a1a', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: 10 }}>
-            {game?.venue ?? '—'}
-          </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {game?.format && (
-              <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 500, color: '#042b2b', backgroundColor: 'rgba(4,43,43,0.08)', padding: '4px 12px', borderRadius: 999 }}>
-                {game.format}
-              </span>
-            )}
-            {game?.area && (
-              <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#666', fontWeight: 400 }}>
-                {game.area}
-              </span>
-            )}
-          </div>
+        {/* Hero */}
+        <h1 style={{ margin: '0 0 10px', fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{game?.venue ?? '—'}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 12px', borderRadius: 99 }}>{game?.sport ?? game?.format ?? '5-a-side'}</span>
+          <span style={{ fontSize: 13, color: 'var(--rx-faint)' }}>{game?.kickoffAt ? `${formatDate(game.kickoffAt)} · ${formatTime(game.kickoffAt)}` : ''}</span>
         </div>
 
         {/* Info cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, paddingBottom: 40 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 36 }}>
           {([
             ['Date',    game?.kickoffAt ? formatDate(game.kickoffAt) : '—'],
             ['Kickoff', game?.kickoffAt ? formatTime(game.kickoffAt) : '—'],
-            ['Format',  game?.format ?? '5-a-side'],
+            ['Cost',    pricePence > 0 ? priceStr(pricePence) : 'Free'],
           ] as [string, string][]).map(([label, val]) => (
-            <div key={label} style={{ padding: '14px 16px', borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.04)' }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#666', marginBottom: 6, fontWeight: 400 }}>{label}</div>
-              <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 16, color: '#1a1a1a' }}>{val}</div>
+            <div key={label} style={{ padding: '14px 16px', borderRadius: 16, background: 'var(--rx-card)' }}>
+              <div style={{ fontSize: 12, color: 'var(--rx-faint)', marginBottom: 6 }}>{label}</div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>{val}</div>
             </div>
           ))}
         </div>
 
-        {/* Trust Panel */}
+        {/* Organiser trust panel */}
         {!isOrganiser && (
-          <section aria-label="Organiser" style={{ paddingBottom: 40 }}>
-            <h2 style={{ ...sectionHeading, marginBottom: 16 }}>Organiser</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.04)' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'rgba(4,43,43,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: '#042b2b', letterSpacing: '-0.01em' }}>
-                  {(organiser?.displayName ?? game?.venue ?? '?').slice(0, 2).toUpperCase()}
-                </span>
-              </div>
+          <div style={{ marginBottom: 36 }}>
+            <div style={eyebrow}>Your host</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 18, background: 'var(--rx-card)' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--rx-clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, flexShrink: 0 }}>{initials(organiser?.displayName)}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 15, color: '#1a1a1a', marginBottom: 2 }}>
-                  {organiser?.displayName ?? 'Organiser'}
-                </div>
-                <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#666' }}>
-                  {organiser?.handle ? `@${organiser.handle}` : ''}
-                  {organiser?.gamesPlayed ? `${organiser.handle ? ' · ' : ''}${organiser.gamesPlayed} games played` : ''}
-                  {!organiser?.handle && !organiser?.gamesPlayed ? 'Organising this game' : ''}
-                </div>
+                <div style={{ fontSize: 15.5, fontWeight: 600 }}>{organiser?.displayName ?? 'Organiser'}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>{organiser?.handle ? `@${organiser.handle}` : 'Hosting this game'}</div>
               </div>
-              {organiser?.stripeOnboarded && (
-                <div title="Verified organiser">
-                  <ShieldCheck size={18} strokeWidth={1.5} color="#042b2b" aria-label="Verified organiser" />
-                </div>
-              )}
+              {organiser?.stripeOnboarded && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 10px', borderRadius: 7 }}>Trusted host</span>}
             </div>
-          </section>
+          </div>
         )}
 
         {/* Squad */}
-        <section aria-label="Squad" style={{ paddingBottom: 40 }}>
+        <div style={{ marginBottom: 36 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-            <h2 style={sectionHeading}>Squad</h2>
-            <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: '#042b2b', backgroundColor: 'rgba(4,43,43,0.08)', padding: '3px 10px', borderRadius: 999 }}>
-              {filled}/{totalSlots}
-            </span>
+            <h4 style={h4}>Squad</h4>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '3px 10px', borderRadius: 99 }}>{filled}/{totalSlots}</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 16 }}>
-            {squad.slice(0, totalSlots).map((p, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: p.isYou
-                      ? '#042b2b'
-                      : p.isOpen
-                      ? 'transparent'
-                      : 'rgba(4,43,43,0.10)',
-                    border: p.isOpen ? '1.5px dashed rgba(0,0,0,0.15)' : 'none',
-                  }}
-                >
-                  {!p.isOpen && (
-                    <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: p.isYou ? '#F0EDE6' : '#042b2b', letterSpacing: '-0.01em' }}>
-                      {p.name?.slice(0, 2).toUpperCase()}
-                    </span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: 16 }}>
+            {squad.map((p) => {
+              const isOpenSlot = p.kind === 'open';
+              const isGuest = p.kind === 'guest';
+              return (
+                <div key={p.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  {isOpenSlot && isOrganiser ? (
+                    <button
+                      onClick={() => setGuestOpen(true)}
+                      aria-label="Add a guest to fill this slot"
+                      style={{ width: 52, height: 52, borderRadius: '50%', border: '1.5px dashed var(--rx-green)', background: 'none', color: 'var(--rx-green)', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >+</button>
+                  ) : (
+                    <div style={{
+                      width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 13, fontWeight: 600, position: 'relative',
+                      ...(p.kind === 'org'
+                        ? { background: 'var(--rx-green)', color: '#fff' }
+                        : isGuest
+                        ? { background: 'var(--rx-chip)', color: 'var(--rx-ink-soft)', border: '1.5px dashed #C9C2B4' }
+                        : isOpenSlot
+                        ? { border: '1.5px dashed #C9C2B4' }
+                        : { background: 'rgba(62,82,54,0.12)', color: 'var(--rx-green)' }),
+                    }}>
+                      {!isOpenSlot && p.init}
+                      {isGuest && isOrganiser && (
+                        <button onClick={() => dropGuest((p as any).guestId)} aria-label={`Remove ${p.label}`} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: '50%', background: 'var(--rx-error)', color: '#fff', border: '2px solid var(--rx-paper)', fontSize: 10, lineHeight: 1, cursor: 'pointer', padding: 0 }}>×</button>
+                      )}
+                    </div>
                   )}
+                  <span style={{ fontSize: 11, color: isOpenSlot ? '#bbb' : 'var(--rx-body)', textAlign: 'center', lineHeight: 1.3 }}>
+                    {p.kind === 'org' && isOrganiser ? 'You' : p.label}
+                    {isGuest && <span style={{ display: 'block', fontSize: 9.5, color: 'var(--rx-ghost)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Guest</span>}
+                  </span>
                 </div>
-                <span style={{ fontFamily: 'Inter', fontSize: 11, color: p.isOpen ? '#bbb' : '#555', textAlign: 'center', fontWeight: p.isYou ? 500 : 400, lineHeight: 1.3 }}>
-                  {p.isYou ? 'You (org)' : p.isOpen ? 'Open' : p.name}
-                </span>
+              );
+            })}
+          </div>
+
+          {/* Guest inline form */}
+          {guestOpen && isOrganiser && (
+            <div style={{ marginTop: 20, padding: 16, borderRadius: 18, border: '1px solid #EEEAE3', background: '#fff' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Add a guest</div>
+              <div style={{ fontSize: 12.5, color: 'var(--rx-faint)', marginBottom: 12 }}>Someone not on Ringer. They fill a slot; you cover their share.</div>
+              <input autoFocus value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Name" aria-label="Guest name" maxLength={60}
+                style={{ width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '12px 14px', borderRadius: 12, border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-ink)', outline: 'none', marginBottom: 10 }} />
+              <input value={guestPhone} onChange={e => setGuestPhone(e.target.value)} placeholder="Phone (optional)" aria-label="Guest phone" inputMode="tel" maxLength={30}
+                style={{ width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '12px 14px', borderRadius: 12, border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-ink)', outline: 'none', marginBottom: 12 }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={addGuest} disabled={!guestName.trim() || guestBusy} style={{ flex: 1, background: guestName.trim() ? 'var(--rx-green)' : '#E4DFD5', color: guestName.trim() ? '#fff' : '#A39A88', border: 'none', fontSize: 14, fontWeight: 600, padding: 12, borderRadius: 99, cursor: guestName.trim() ? 'pointer' : 'default' }}>{guestBusy ? 'Adding…' : 'Add guest'}</button>
+                <button onClick={() => { setGuestOpen(false); setGuestName(''); setGuestPhone(''); }} style={{ flex: 1, background: 'none', border: '1px solid #E2DED7', color: 'var(--rx-body)', fontSize: 14, fontWeight: 600, padding: 12, borderRadius: 99, cursor: 'pointer' }}>Cancel</button>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Cost */}
-        <section aria-label="Cost breakdown" style={{ paddingBottom: 40 }}>
-          <h2 style={{ ...sectionHeading, marginBottom: 16 }}>Cost</h2>
-          <div style={{ borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.04)', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400 }}>Pitch hire</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 14, color: '#1a1a1a', fontWeight: 400 }}>{pitchCostStr}</span>
-            </div>
-            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', fontWeight: 400 }}>Per player</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 14, color: '#1a1a1a', fontWeight: 400 }}>{priceStr}</span>
-            </div>
-            <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 15, fontWeight: 600, color: '#1a1a1a' }}>Your cost</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 24, fontWeight: 700, color: '#042b2b', letterSpacing: '-0.02em' }}>{priceStr}</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Error */}
-        {errorMsg && (
-          <div role="alert" style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, backgroundColor: 'rgba(200,16,46,0.06)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <span aria-hidden="true" style={{ flexShrink: 0, color: '#c8102e' }}>⚠</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#c8102e' }}>{errorMsg}</span>
-          </div>
-        )}
-
-        {/* CTA */}
-        <div style={{ paddingBottom: 40 }}>
-          {isOrganiser ? (
-            <div
-              style={{ padding: '16px 24px', borderRadius: 50, backgroundColor: 'rgba(4,43,43,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              <CheckCircle2 size={16} strokeWidth={2} color="#042b2b" aria-hidden="true" />
-              <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: 15, color: '#042b2b' }}>You're organising this game</span>
-            </div>
-          ) : open > 0 ? (
-            <button
-              onClick={handleClaim}
-              disabled={state === 'paying'}
-              className="btn-primary"
-              style={{ width: '100%', minHeight: 56, backgroundColor: '#042b2b', color: '#F0EDE6', fontFamily: 'Inter', fontWeight: 600, fontSize: 16, borderRadius: 50, border: 'none', cursor: state === 'paying' ? 'not-allowed' : 'pointer', opacity: state === 'paying' ? 0.6 : 1 }}
-              aria-busy={state === 'paying'}
-            >
-              {state === 'paying' ? 'Processing…' : `Claim Spot · ${priceStr}`}
-            </button>
-          ) : (
-            <div style={{ padding: '16px 24px', borderRadius: 50, backgroundColor: 'rgba(0,0,0,0.05)', textAlign: 'center' }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 15, color: '#666', fontWeight: 400 }}>This game is full</span>
             </div>
           )}
         </div>
 
+        {/* Cost */}
+        {pricePence > 0 && (
+          <div style={{ marginBottom: 36 }}>
+            <div style={eyebrow}>Cost</div>
+            <div style={{ borderRadius: 18, background: 'var(--rx-card)', overflow: 'hidden' }}>
+              <div style={{ padding: '15px 18px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <span style={{ fontSize: 14, color: 'var(--rx-muted)' }}>Per player</span>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{priceStr(pricePence)}</span>
+              </div>
+              {isOrganiser && guests.length > 0 && (
+                <div style={{ padding: '15px 18px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span style={{ fontSize: 14, color: 'var(--rx-muted)' }}>{guests.length} guest{guests.length === 1 ? '' : 's'} (you cover)</span>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>{priceStr(pricePence * guests.length)}</span>
+                </div>
+              )}
+              <div style={{ padding: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 15, fontWeight: 600 }}>Your cost</span>
+                <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--rx-green)', letterSpacing: '-0.02em' }}>{priceStr(yourCost)}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div role="alert" style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: 'rgba(194,90,78,0.08)', fontSize: 13, color: 'var(--rx-error)' }}>{errorMsg}</div>
+        )}
+
+        {/* CTA */}
+        {isOrganiser ? (
+          <div style={{ padding: '16px 24px', borderRadius: 99, background: 'var(--rx-green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <span style={{ color: 'var(--rx-green)' }}>✓</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--rx-green)' }}>You're organising this game</span>
+          </div>
+        ) : alreadyIn ? (
+          <div style={{ padding: '16px 24px', borderRadius: 99, background: 'var(--rx-green-tint)', textAlign: 'center', fontSize: 15, fontWeight: 600, color: 'var(--rx-green)' }}>You're in ✓</div>
+        ) : open > 0 ? (
+          <button onClick={handleClaim} disabled={state === 'paying'} style={{ width: '100%', minHeight: 56, background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, borderRadius: 99, cursor: state === 'paying' ? 'wait' : 'pointer', opacity: state === 'paying' ? 0.6 : 1 }}>
+            {state === 'paying' ? 'Processing…' : pricePence > 0 ? `Claim spot · ${priceStr(pricePence)}` : 'Claim spot'}
+          </button>
+        ) : (
+          <div style={{ padding: '16px 24px', borderRadius: 99, background: 'rgba(0,0,0,0.05)', textAlign: 'center', fontSize: 15, color: 'var(--rx-faint)' }}>This game is full</div>
+        )}
       </div>
 
-      {/* Cancel confirmation overlay */}
-      {showCancelConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <div className="w-full rounded-t-3xl p-6" style={{ backgroundColor: '#F0EDE6', maxWidth: 480 }}>
-            <h2 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: 22, color: '#1a1a1a', marginBottom: 8, letterSpacing: '-0.02em' }}>
-              Cancel this game?
-            </h2>
-            <p style={{ fontFamily: 'Inter', fontSize: 14, color: '#666', marginBottom: 24, lineHeight: 1.6, fontWeight: 400 }}>
-              All confirmed players will be automatically refunded. This can't be undone.
-            </p>
-            <div style={{ marginBottom: 20 }}>
-              <label htmlFor="cancel-reason" style={{ fontFamily: 'Inter', fontSize: 14, color: '#2a2a2a', display: 'block', marginBottom: 8, fontWeight: 500 }}>
-                Reason (optional)
-              </label>
-              <input
-                id="cancel-reason"
-                type="text"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="e.g. Pitch unavailable"
-                style={{ width: '100%', padding: '13px 16px', borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.05)', border: 'none', fontFamily: 'Inter', fontSize: 15, color: '#1a1a1a', minHeight: 48 }}
-              />
-            </div>
-            <button
-              onClick={handleCancel}
-              disabled={state === 'cancelling'}
-              className="btn-primary"
-              style={{ width: '100%', minHeight: 52, backgroundColor: '#c8102e', color: '#fff', fontFamily: 'Inter', fontWeight: 600, fontSize: 16, borderRadius: 50, border: 'none', cursor: state === 'cancelling' ? 'not-allowed' : 'pointer', marginBottom: 12, opacity: state === 'cancelling' ? 0.6 : 1 }}
-            >
-              {state === 'cancelling' ? 'Cancelling…' : 'Yes, cancel game'}
-            </button>
-            <button
-              onClick={() => setShowCancelConfirm(false)}
-              style={{ display: 'block', width: '100%', textAlign: 'center', fontFamily: 'Inter', fontSize: 14, color: '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0' }}
-            >
-              Keep game
-            </button>
+      {/* Cancel sheet */}
+      {showCancel && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 30 }}>
+          <div style={{ width: '100%', maxWidth: 430, background: 'var(--rx-paper)', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Cancel this game?</h2>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--rx-muted)', lineHeight: 1.6 }}>Everyone confirmed is refunded automatically. This can't be undone.</p>
+            <input value={cancelReason} onChange={e => setCancelReason(e.target.value)} placeholder="Reason (optional)" style={{ width: '100%', padding: '13px 16px', borderRadius: 12, background: '#fff', border: '1px solid #E7E2D9', fontSize: 15, color: 'var(--rx-ink)', outline: 'none', marginBottom: 16 }} />
+            <button onClick={handleCancel} disabled={state === 'cancelling'} style={{ width: '100%', background: 'var(--rx-error)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, padding: 15, borderRadius: 99, cursor: 'pointer', marginBottom: 10 }}>{state === 'cancelling' ? 'Cancelling…' : 'Yes, cancel game'}</button>
+            <button onClick={() => setShowCancel(false)} style={{ width: '100%', background: 'none', border: 'none', fontSize: 14, fontWeight: 600, color: 'var(--rx-muted)', padding: 10, cursor: 'pointer' }}>Keep game</button>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-const sectionHeading: React.CSSProperties = {
-  fontFamily:    'Inter',
-  fontWeight:    600,
-  fontSize:      22,
-  color:         '#1a1a1a',
-  letterSpacing: '-0.02em',
-  margin:        0,
-};
