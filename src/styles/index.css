@@ -225,3 +225,23 @@ button:focus { outline: none; }
 @media (prefers-reduced-motion: reduce) {
   .rx * { animation: none !important; transition: none !important; }
 }
+
+/* ── Motion & feedback — Phase 13 (scoped to .rx, reduced-motion safe) ──── */
+.rx button:not(:disabled) { transition: transform 140ms cubic-bezier(0.22,1,0.36,1); }
+.rx button:not(:disabled):active { transform: scale(0.97); }
+.rx .rx-tap { transition: transform 140ms cubic-bezier(0.22,1,0.36,1), background-color 140ms ease; }
+.rx .rx-tap:active { transform: scale(0.985); }
+
+/* Skeleton shimmer */
+.rx .sk { position: relative; overflow: hidden; background: #ECE7DF; border-radius: 12px; }
+.rx .sk::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: sk-shimmer 1.3s infinite;
+}
+@keyframes sk-shimmer { 100% { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rx button:not(:disabled):active { transform: none; }
+  .rx .sk::after { animation: none; }
+}

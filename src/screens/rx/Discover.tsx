@@ -332,34 +332,47 @@ export function Discover() {
         {nearby.length > 0 && (
           <div style={{ marginTop: 36 }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 18 }}>Games near you</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {nearby.map(g => {
-                const joined = joinedIds.has(g.id);
-                const priceGBP = Math.round((g.costPerPlayer ?? 0) / 100);
+                const joined    = joinedIds.has(g.id);
+                const priceGBP  = Math.round((g.costPerPlayer ?? 0) / 100);
+                const total     = g.playerCount ?? 10;
+                const filled    = (g.confirmedPlayers?.length ?? 0) + 1;
+                const spotsLeft = Math.max(0, total - filled);
+                const inNetwork = g.accessTier === 'first';
                 return (
-                  <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <button onClick={() => navigate(`/game/${g.id}`)} aria-label={`Open ${g.venue}`}
-                      style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                      <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{g.venue}</div>
-                      <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>
-                        {fmtKick(g.kickoffAt)}{priceGBP > 0 ? ` · £${priceGBP}` : ' · Free'}
-                        {g.accessTier === 'first' ? ' · In your network' : ''}
+                  <div key={g.id} className="rx-tap" style={{ background: '#fff', border: '1px solid #EEEAE3', borderRadius: 20, padding: 18 }}>
+                    {/* Scan line 1: sport + urgency */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 11px', borderRadius: 99 }}>{g.sport ?? g.format ?? 'Football'}</span>
+                      {inNetwork && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-clay)', background: '#F6ECE5', padding: '4px 10px', borderRadius: 99 }}>In your network</span>}
+                      {spotsLeft > 0 && spotsLeft <= 3 && <span style={{ fontSize: 12, fontWeight: 700, color: '#B23A2E', marginLeft: 'auto' }}>{spotsLeft} left</span>}
+                    </div>
+                    {/* Scan line 2: venue */}
+                    <button onClick={() => navigate(`/game/${g.id}`)} aria-label={`Open ${g.venue}`} style={{ display: 'block', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer', width: '100%' }}>
+                      <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15 }}>{g.venue}</div>
+                      <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginTop: 4 }}>
+                        {fmtKick(g.kickoffAt)} · {priceGBP > 0 ? `£${priceGBP}` : 'Free'}
                       </div>
                     </button>
-                    <button
-                      onClick={() => joinNearby(g)}
-                      disabled={joined}
-                      aria-label={joined ? `Joined ${g.venue}` : `Join ${g.venue}`}
-                      style={{
-                        fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
-                        cursor: joined ? 'default' : 'pointer',
-                        ...(joined
-                          ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
-                          : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
-                      }}
-                    >
-                      {joined ? "In ✓" : 'Join'}
-                    </button>
+                    {/* Scan line 3: fill + dominant CTA */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--rx-muted)' }}>{filled}/{total} in</span>
+                      <button
+                        onClick={() => joinNearby(g)}
+                        disabled={joined}
+                        aria-label={joined ? `Joined ${g.venue}` : `Join ${g.venue}`}
+                        style={{
+                          fontSize: 15, fontWeight: 700, padding: '11px 26px', borderRadius: 99, flexShrink: 0, border: 'none',
+                          cursor: joined ? 'default' : 'pointer', letterSpacing: '-0.01em',
+                          ...(joined
+                            ? { background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                            : { background: 'var(--rx-green)', color: '#fff', boxShadow: '0 8px 18px -8px rgba(62,82,54,0.5)' }),
+                        }}
+                      >
+                        {joined ? "You're in ✓" : 'Join'}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

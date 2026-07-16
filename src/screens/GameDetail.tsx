@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { loadStripe } from '@stripe/stripe-js';
 import { gamesApi, usersApi } from '../lib/api';
+import { GameDetailSkeleton } from '../components/rx/Skeleton';
 import { formatDate, formatTime } from '../lib/utils';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -92,13 +93,7 @@ export function GameDetail() {
     refresh();
   };
 
-  if (loading) {
-    return (
-      <div className="scr" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 14, color: 'var(--rx-faint)' }}>Loading…</span>
-      </div>
-    );
-  }
+  if (loading) return <GameDetailSkeleton />;
 
   if (state === 'success') {
     return (
