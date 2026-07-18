@@ -245,3 +245,8 @@ button:focus { outline: none; }
   .rx button:not(:disabled):active { transform: none; }
   .rx .sk::after { animation: none; }
 }
+
+/* Success pop — join / payment confirmation (Phase 9) */
+@keyframes rx-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+.rx .rx-pop { animation: rx-pop 340ms cubic-bezier(0.22,1,0.36,1); }
+@media (prefers-reduced-motion: reduce) { .rx .rx-pop { animation: none; } }

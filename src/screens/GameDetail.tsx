@@ -98,8 +98,8 @@ export function GameDetail() {
   if (state === 'success') {
     return (
       <div className="scr" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', textAlign: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--rx-green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
-          <span style={{ color: 'var(--rx-green)', fontSize: 28 }}>✓</span>
+        <div className="rx-pop" style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
+          <span style={{ color: '#fff', fontSize: 30 }}>✓</span>
         </div>
         <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>You're in</h1>
         <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 32 }}>Your spot is secured. See you out there.</div>
@@ -171,13 +171,45 @@ export function GameDetail() {
         {!isOrganiser && (
           <div style={{ marginBottom: 36 }}>
             <div style={eyebrow}>Your host</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 18, background: 'var(--rx-card)' }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--rx-clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, flexShrink: 0 }}>{initials(organiser?.displayName)}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 600 }}>{organiser?.displayName ?? 'Organiser'}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--rx-faint)' }}>{organiser?.handle ? `@${organiser.handle}` : 'Hosting this game'}</div>
+            <div style={{ padding: 18, borderRadius: 18, background: 'var(--rx-card)' }}>
+              {/* Identity row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--rx-clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{initials(organiser?.displayName)}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span style={{ fontSize: 16.5, fontWeight: 700, letterSpacing: '-0.01em' }}>{organiser?.displayName ?? 'Organiser'}</span>
+                    {organiser?.verified && (
+                      <span title="Verified host" aria-label="Verified host" style={{ display: 'inline-flex', width: 16, height: 16, borderRadius: '50%', background: 'var(--rx-green)', color: '#fff', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>✓</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--rx-faint)', marginTop: 1 }}>
+                    {organiser?.memberSince ? `Hosting since ${new Date(organiser.memberSince).getFullYear()}` : (organiser?.handle ? `@${organiser.handle}` : 'Hosting this game')}
+                  </div>
+                </div>
+                {organiser?.verified && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 10px', borderRadius: 7 }}>Trusted host</span>}
               </div>
-              {organiser?.stripeOnboarded && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '5px 10px', borderRadius: 7 }}>Trusted host</span>}
+
+              {/* Trust stats */}
+              <div style={{ display: 'flex', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 14 }}>
+                {[
+                  [organiser?.gamesHosted ?? 0, 'hosted'],
+                  [organiser?.attendancePct != null ? `${organiser.attendancePct}%` : '—', 'turn up'],
+                  [organiser?.mutualCount ?? 0, organiser?.mutualCount === 1 ? 'mutual' : 'mutuals'],
+                ].map(([val, label], i) => (
+                  <div key={label as string} style={{ flex: 1, textAlign: 'center', ...(i > 0 ? { borderLeft: '1px solid rgba(0,0,0,0.06)' } : {}) }}>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>{val}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--rx-faint)', marginTop: 1 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Human trust line */}
+              {(organiser?.mutualCount ?? 0) > 0 && (
+                <div style={{ marginTop: 14, fontSize: 13, color: 'var(--rx-body)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: 'var(--rx-green)' }}>⇄</span>
+                  You share {organiser.mutualCount} connection{organiser.mutualCount === 1 ? '' : 's'} with {organiser?.displayName?.split(' ')[0] ?? 'them'}.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -264,6 +296,22 @@ export function GameDetail() {
                 <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--rx-green)', letterSpacing: '-0.02em' }}>{priceStr(yourCost)}</span>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Join confidence — shown before committing (Phase 9) */}
+        {!isOrganiser && !alreadyIn && open > 0 && (
+          <div style={{ marginBottom: 16, padding: 16, borderRadius: 16, background: 'var(--rx-panel)' }}>
+            {([
+              [pricePence > 0 ? 'lock' : 'spots', pricePence > 0 ? `Secure payment · you're charged ${priceStr(pricePence)} only when you join` : `${open} spot${open === 1 ? '' : 's'} left · free to join`],
+              ['refund', pricePence > 0 ? 'Fully refunded if the game is cancelled' : 'Cancel any time before kick-off'],
+              ['host', pricePence > 0 ? `Payment goes straight to ${organiser?.displayName?.split(' ')[0] ?? 'the organiser'}, not Ringer` : `Hosted by ${organiser?.displayName?.split(' ')[0] ?? 'the organiser'}`],
+            ] as [string, string][]).map(([, line], i, arr) => (
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', paddingBottom: i < arr.length - 1 ? 10 : 0 }}>
+                <span style={{ color: 'var(--rx-green)', fontSize: 13, lineHeight: 1.4, flexShrink: 0 }}>✓</span>
+                <span style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--rx-body)' }}>{line}</span>
+              </div>
+            ))}
           </div>
         )}
 
