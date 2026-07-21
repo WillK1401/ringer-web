@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet, useLocation } from 'react-router';
 import { AnimatePresence } from 'framer-motion';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { PageTransition } from '../components/PageTransition';
+import { Home } from '../screens/rx/Home';
 import { Discover } from '../screens/rx/Discover';
 import { Network } from '../screens/rx/Network';
 import { Gather } from '../screens/rx/Gather';
@@ -64,7 +65,8 @@ export const router = createBrowserRouter([
     element: <ProtectedLayout />,
     children: [
       // Core experiences
-      { path: '/',         Component: Discover },
+      { path: '/',         Component: Home },
+      { path: '/discover', Component: Discover },
       { path: '/network',  Component: Network },
       { path: '/gather',   Component: Gather },
       { path: '/activity', Component: Activity },

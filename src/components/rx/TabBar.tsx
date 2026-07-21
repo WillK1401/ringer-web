@@ -44,7 +44,7 @@ export function TabBar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const isDiscover = pathname === '/' || pathname.startsWith('/game/');
+  const isDiscover = pathname.startsWith('/discover') || pathname.startsWith('/game/');
   const isNetwork  = pathname.startsWith('/network') || pathname.startsWith('/connections') || pathname.startsWith('/users/');
   const isGather   = pathname.startsWith('/gather');
   const isActivity = pathname.startsWith('/activity') || pathname.startsWith('/notifications') || pathname.startsWith('/chat');
@@ -75,7 +75,7 @@ export function TabBar() {
       display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around',
       padding: '12px 18px calc(env(safe-area-inset-bottom))', flexShrink: 0, zIndex: 25,
     }}>
-      <button onClick={() => navigate('/')} aria-label="Discover" aria-current={isDiscover ? 'page' : undefined} style={itemStyle}>
+      <button onClick={() => navigate('/discover')} aria-label="Discover" aria-current={isDiscover ? 'page' : undefined} style={itemStyle}>
         <div style={iconWrap(isDiscover)}><DiscoverIcon active={isDiscover} /></div>
         {label('Discover', isDiscover)}
       </button>

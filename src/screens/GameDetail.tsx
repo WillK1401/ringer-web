@@ -104,7 +104,7 @@ export function GameDetail() {
         <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>You're in</h1>
         <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 32 }}>Your spot is secured. See you out there.</div>
         <button onClick={() => navigate('/activity')} style={{ background: 'var(--rx-green)', color: '#fff', border: 'none', fontSize: 16, fontWeight: 600, padding: '15px 32px', borderRadius: 99, cursor: 'pointer' }}>Open in Activity</button>
-        <button onClick={() => navigate('/')} style={{ marginTop: 14, background: 'none', border: 'none', fontSize: 14, color: 'var(--rx-faint)', cursor: 'pointer' }}>Back to Discover</button>
+        <button onClick={() => navigate('/discover')} style={{ marginTop: 14, background: 'none', border: 'none', fontSize: 14, color: 'var(--rx-faint)', cursor: 'pointer' }}>Back to Discover</button>
       </div>
     );
   }
