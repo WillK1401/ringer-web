@@ -9,7 +9,7 @@ export function SignIn() {
       <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: FOREST, marginBottom: 6 }}>
         ringer<span style={{ color: '#6FA84E' }}>.</span>
       </div>
-      <div className="serif" style={{ fontFamily: "'Newsreader', Georgia, serif", fontStyle: 'italic', fontSize: 15, color: '#6B665E', marginBottom: 34 }}>
+      <div className="serif" style={{ fontFamily: "'Newsreader', Georgia, serif", fontStyle: 'normal', fontSize: 15, color: '#6B665E', marginBottom: 34 }}>
         Welcome back.
       </div>
       <ClerkSignIn

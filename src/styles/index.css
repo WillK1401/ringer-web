@@ -217,7 +217,7 @@ button:focus { outline: none; }
 }
 .rx .serif {
   font-family: 'Newsreader', Georgia, serif;
-  font-style: italic;
+  font-style: normal;
 }
 .rx button { font-family: inherit; }
 .rx .scr::-webkit-scrollbar { width: 0; height: 0; }

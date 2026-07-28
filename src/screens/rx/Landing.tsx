@@ -45,7 +45,7 @@ export function Landing() {
             Keep playing with the people who matter.
           </h1>
           <p className="serif" style={{
-            marginTop: 18, fontFamily: "'Newsreader', Georgia, serif", fontStyle: 'italic',
+            marginTop: 18, fontFamily: "'Newsreader', Georgia, serif", fontStyle: 'normal',
             fontSize: 18, lineHeight: 1.5, color: 'rgba(251,250,247,0.75)', maxWidth: 300,
           }}>
             Find your game, gather your crew, and grow a sporting life through the people you trust.
