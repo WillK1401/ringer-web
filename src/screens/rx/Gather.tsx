@@ -270,15 +270,30 @@ export function Gather() {
 
   const stepIndex = WIZARD_STEPS.indexOf(phase);
 
+  // Dismiss the whole Gather flow · Gather is launched from the create (＋)
+  // button, so it reads as a focused create surface that wants an explicit exit.
+  const closeGather = (
+    <button
+      onClick={() => navigate('/')}
+      aria-label="Close"
+      style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--rx-card)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--rx-ink-soft)', flexShrink: 0 }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+    </button>
+  );
+
   const wizardHeader = (backTo: Phase) => (
     <>
-      <button
-        onClick={back(backTo)}
-        aria-label="Back"
-        style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 18px' }}
-      >
-        ‹ Back
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0 18px' }}>
+        <button
+          onClick={back(backTo)}
+          aria-label="Back"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: 0 }}
+        >
+          ‹ Back
+        </button>
+        {closeGather}
+      </div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 22 }} aria-label={`Step ${stepIndex + 1} of ${WIZARD_STEPS.length}`}>
         {WIZARD_STEPS.map((s, i) => (
           <span key={s} style={{ width: i === stepIndex ? 22 : 7, height: 7, borderRadius: 99, background: i <= stepIndex ? 'var(--rx-green)' : '#E7E0D3', transition: 'all .2s ease' }} />
@@ -292,7 +307,10 @@ export function Gather() {
     return (
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '8px 24px 120px' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Gather</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Gather</div>
+            {closeGather}
+          </div>
           <h2 style={qStyle}>Who do you want to bring together?</h2>
           <div className="serif" style={serifSub}>Activate your regulars, or start something new.</div>
 
@@ -681,13 +699,16 @@ export function Gather() {
     <>
       <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '8px 24px 210px' }}>
-          <button
-            onClick={backFromLive}
-            aria-label="Back"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: '6px 0 10px' }}
-          >
-            ‹ {activated ? 'Gather' : 'Set-up'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0 10px' }}>
+            <button
+              onClick={backFromLive}
+              aria-label="Back"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 12.5, fontWeight: 600, color: '#726D64', cursor: 'pointer', padding: 0 }}
+            >
+              ‹ {activated ? 'Gather' : 'Set-up'}
+            </button>
+            {closeGather}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-faint)' }}>
               {sessionTitle}
