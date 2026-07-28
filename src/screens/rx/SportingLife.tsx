@@ -128,6 +128,22 @@ export function SportingLife() {
           ))}
         </div>
 
+        {/* YOUR CIRCLE · Network lives here now (no longer a bottom-bar tab) */}
+        <button
+          onClick={() => navigate('/network')}
+          aria-label="Your circle · see your connections and grow your network"
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1px solid #EEEAE3', borderRadius: 16, padding: '16px 18px', cursor: 'pointer', marginBottom: 40, textAlign: 'left' }}
+        >
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--rx-green-tint)', color: 'var(--rx-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="10" r="3" stroke="currentColor" strokeWidth="2" /><circle cx="15.5" cy="10" r="3" stroke="currentColor" strokeWidth="2" /></svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 700, letterSpacing: '-0.01em' }}>Your circle</div>
+            <div style={{ fontSize: 13, color: 'var(--rx-faint)', marginTop: 2 }}>See your connections and grow your network</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: '#B0A99B' }} aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+
         {/* SPORTING JOURNEY · the story, told by other people */}
         <div style={{ paddingTop: 26, borderTop: '1px solid var(--rx-hairline)' }}>
           <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 6 }}>Your sporting journey</div>

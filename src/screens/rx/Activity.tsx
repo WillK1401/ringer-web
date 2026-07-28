@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { chatsApi, gamesApi, groupsApi } from '../../lib/api';
+import { HeaderAvatar } from '../../components/rx/HeaderAvatar';
 import {
   PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS,
   GROUP_PHOTOS, GROUP_HISTORY, GROUP_PAYMENTS,
@@ -424,7 +425,10 @@ export function Activity() {
   return (
     <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ padding: '6px 24px 120px' }}>
-        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Activity</div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Activity</div>
+          <HeaderAvatar />
+        </div>
         <h2 style={{ margin: '5px 0 24px', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Your sporting home.</h2>
 
         {/* NEEDS YOU · pinned action queue */}

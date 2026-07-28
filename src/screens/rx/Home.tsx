@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { loadProfile, saveProfile } from '../../lib/sampleWorld';
 import { usersApi } from '../../lib/api';
+import { HeaderAvatar } from '../../components/rx/HeaderAvatar';
 
 /**
  * Home · the front door.
@@ -40,17 +41,7 @@ export function Home() {
         <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--rx-green-deep)' }}>
           ringer<span style={{ color: 'var(--rx-green-live)' }}>.</span>
         </div>
-        <button
-          onClick={() => navigate('/profile')}
-          aria-label="You"
-          style={{
-            width: 32, height: 32, borderRadius: '50%', background: 'var(--rx-card)', border: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 12, fontWeight: 700, color: 'var(--rx-green)', cursor: 'pointer',
-          }}
-        >
-          {me.init}
-        </button>
+        <HeaderAvatar />
       </div>
 
       {/* Greeting */}
