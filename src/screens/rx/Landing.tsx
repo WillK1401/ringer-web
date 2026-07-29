@@ -84,16 +84,44 @@ export function Landing() {
   );
 }
 
-/** Branded splash shown while Clerk boots · avoids a white flash on cold load. */
+/**
+ * Branded splash shown while Clerk boots · reuses the Landing artwork frame
+ * so the cold load flows seamlessly into the landing page (the artwork is
+ * already painted; the headline and buttons just appear). A pulsing wordmark
+ * in the same lower band carries the loading cue.
+ */
 export function Splash() {
   return (
     <div style={{
-      minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: FOREST, color: PAPER,
+      minHeight: '100dvh', display: 'flex', justifyContent: 'center',
+      background: DEEP, color: PAPER,
       fontFamily: "'Schibsted Grotesk', system-ui, sans-serif",
+      WebkitFontSmoothing: 'antialiased',
     }}>
-      <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>
-        ringer<span style={{ color: '#8FB56F', animation: 'rxPulse 1.2s ease-in-out infinite' }}>.</span>
+      <div style={{
+        position: 'relative', width: '100%', maxWidth: 430, minHeight: '100dvh',
+        display: 'flex', flexDirection: 'column',
+        backgroundColor: DEEP, overflow: 'hidden',
+      }}>
+        <img
+          src={signInBg}
+          alt=""
+          aria-hidden
+          style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: 'auto',
+            WebkitMaskImage: 'linear-gradient(180deg, #000 78%, transparent 100%)',
+            maskImage: 'linear-gradient(180deg, #000 78%, transparent 100%)',
+            pointerEvents: 'none', userSelect: 'none',
+          }}
+        />
+        <div style={{
+          position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+          padding: 'calc(env(safe-area-inset-top) + 40px) 32px calc(env(safe-area-inset-bottom) + 32px)',
+        }}>
+          <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            ringer<span style={{ color: '#8FB56F', animation: 'rxPulse 1.2s ease-in-out infinite' }}>.</span>
+          </div>
+        </div>
       </div>
       <style>{`@keyframes rxPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }`}</style>
     </div>
