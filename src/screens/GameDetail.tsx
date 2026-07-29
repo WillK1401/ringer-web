@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { loadStripe } from '@stripe/stripe-js';
 import { gamesApi, usersApi } from '../lib/api';
 import { GameDetailSkeleton } from '../components/rx/Skeleton';
+import { UserCircle } from '../components/rx/UserCircle';
 import { formatDate, formatTime } from '../lib/utils';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -174,7 +175,7 @@ export function GameDetail() {
             <div style={{ padding: 18, borderRadius: 18, background: 'var(--rx-card)' }}>
               {/* Identity row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--rx-clay)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{initials(organiser?.displayName)}</div>
+                <UserCircle name={organiser?.displayName} avatarUrl={organiser?.avatarUrl} size={52} background="var(--rx-clay)" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     <span style={{ fontSize: 16.5, fontWeight: 700, letterSpacing: '-0.01em' }}>{organiser?.displayName ?? 'Organiser'}</span>

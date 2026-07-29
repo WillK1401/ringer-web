@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Person } from '../../lib/sampleWorld';
 
 interface AvatarProps {
@@ -6,11 +7,15 @@ interface AvatarProps {
   ring?: string;      // border colour for stacking
   live?: boolean;     // green presence dot
   liveRing?: string;  // background the dot's border blends into
+  src?: string | null; // profile photo · falls back to initials when absent or broken
   style?: React.CSSProperties;
 }
 
-export function Avatar({ person, size = 44, ring, live, liveRing = '#FBFAF7', style }: AvatarProps) {
+export function Avatar({ person, size = 44, ring, live, liveRing = '#FBFAF7', src, style }: AvatarProps) {
   const dotSize = Math.max(10, Math.round(size * 0.27));
+  const [broken, setBroken] = useState(false);
+  const showPhoto = Boolean(src) && !broken;
+
   return (
     <div
       style={{
@@ -24,7 +29,17 @@ export function Avatar({ person, size = 44, ring, live, liveRing = '#FBFAF7', st
       }}
       aria-label={person.name}
     >
-      {person.init}
+      {showPhoto ? (
+        // Rounded on the image itself · clipping the parent would cut off the live dot
+        <img
+          src={src!}
+          alt=""
+          onError={() => setBroken(true)}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
+        />
+      ) : (
+        person.init
+      )}
       {live && (
         <span style={{
           position: 'absolute', bottom: 0, right: 0,

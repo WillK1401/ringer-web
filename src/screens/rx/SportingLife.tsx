@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useUser } from '@clerk/clerk-react';
 import { loadProfile, saveProfile, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
 import { usersApi } from '../../lib/api';
 
@@ -10,8 +11,10 @@ const eyebrow = (color: string): React.CSSProperties => ({
 
 export function SportingLife() {
   const navigate = useNavigate();
+  const { user } = useUser();
   const [openTrait, setOpenTrait] = useState<string | null>(null);
   const [me, setMe] = useState(loadProfile());
+  const photo = user?.hasImage ? user.imageUrl : null;
 
   // Hydrate identity from the real account when signed in
   useEffect(() => {
@@ -21,10 +24,14 @@ export function SportingLife() {
         const since = u.createdAt ? `on Ringer since ${new Date(u.createdAt).getFullYear()}` : me.since;
         saveProfile({ name: u.displayName, city: u.city || me.city, since });
         setMe(loadProfile());
+        // Clerk holds the photo · mirror it to our account so other people see it
+        if (photo && u.avatarUrl !== photo) {
+          usersApi.updateMe({ avatarUrl: photo }).catch(() => {});
+        }
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [photo]);
   const open = TRAITS.find(t => t.id === openTrait) ?? null;
 
   return (
@@ -47,9 +54,11 @@ export function SportingLife() {
           <div style={{
             width: 92, height: 92, borderRadius: '50%', background: me.color, color: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 32, fontWeight: 600, margin: '0 auto 16px',
+            fontSize: 32, fontWeight: 600, margin: '0 auto 16px', overflow: 'hidden',
           }}>
-            {me.init}
+            {photo
+              ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : me.init}
           </div>
           <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>{me.name}</h2>
           <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginBottom: 10 }}>{me.city} · {me.since}</div>

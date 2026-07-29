@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useUser } from '@clerk/clerk-react';
 import { loadProfile, saveProfile } from '../../lib/sampleWorld';
 import { usersApi } from '../../lib/api';
+
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // Clerk's limit
 
 const label: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -16,8 +19,49 @@ const field: React.CSSProperties = {
 
 export function EditProfile() {
   const navigate = useNavigate();
+  const { user } = useUser();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [p, setP]       = useState(loadProfile());
   const [saved, setSaved] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+
+  const photo = user?.hasImage ? user.imageUrl : null;
+
+  // Clerk stores the image · we mirror the resulting URL onto our own account
+  const onPickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // let the same file be re-picked after an error
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setPhotoError('That file is not an image.'); return; }
+    if (file.size > MAX_PHOTO_BYTES) { setPhotoError('That image is too large · 10MB max.'); return; }
+
+    setPhotoError('');
+    setPhotoBusy(true);
+    try {
+      const updated = await user!.setProfileImage({ file });
+      const url = updated?.publicUrl ?? user!.imageUrl;
+      if (url) await usersApi.updateMe({ avatarUrl: url }).catch(() => {});
+      await user!.reload();
+    } catch {
+      setPhotoError('Could not update your photo · try again.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const onRemovePhoto = async () => {
+    setPhotoError('');
+    setPhotoBusy(true);
+    try {
+      await user!.setProfileImage({ file: null });
+      await user!.reload();
+    } catch {
+      setPhotoError('Could not remove your photo · try again.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   const set = (k: keyof typeof p) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setP(prev => ({ ...prev, [k]: e.target.value }));
@@ -51,11 +95,68 @@ export function EditProfile() {
           Your sporting life tells your story · this is just the top of it.
         </div>
 
-        {/* Avatar preview */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
-          <div style={{ width: 84, height: 84, borderRadius: '50%', background: p.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 600 }}>
-            {initial}
+        {/* Photo · Clerk hosts it. Google sign-ins arrive with one already. */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={photoBusy}
+            aria-label={photo ? 'Change your profile photo' : 'Upload a profile photo'}
+            style={{
+              position: 'relative', width: 84, height: 84, borderRadius: '50%',
+              background: p.color, color: '#fff', border: 'none', padding: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 30, fontWeight: 600, cursor: photoBusy ? 'default' : 'pointer',
+              opacity: photoBusy ? 0.6 : 1,
+            }}
+          >
+            {/* Rounded on the image itself · clipping the button would cut off the camera badge */}
+            {photo
+              ? <img src={photo} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }} />
+              : initial}
+            {/* Camera badge */}
+            <span aria-hidden style={{
+              position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%',
+              background: 'var(--rx-green)', border: '2.5px solid var(--rx-paper)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M4 8.5h3l1.5-2h7L17 8.5h3v10H4v-10Z" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
+                <circle cx="12" cy="13" r="3" stroke="#fff" strokeWidth="2" />
+              </svg>
+            </span>
+          </button>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={onPickPhoto}
+            style={{ display: 'none' }}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12 }}>
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={photoBusy}
+              style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-green)', cursor: photoBusy ? 'default' : 'pointer', padding: 0 }}
+            >
+              {photoBusy ? 'Updating…' : photo ? 'Change photo' : 'Add a photo'}
+            </button>
+            {photo && !photoBusy && (
+              <button
+                onClick={onRemovePhoto}
+                style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--rx-faint)', cursor: 'pointer', padding: 0 }}
+              >
+                Remove
+              </button>
+            )}
           </div>
+
+          {photoError && (
+            <div role="alert" style={{ fontSize: 12.5, color: 'var(--rx-error)', marginTop: 8, textAlign: 'center' }}>
+              {photoError}
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>

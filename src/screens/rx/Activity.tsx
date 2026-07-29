@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { chatsApi, gamesApi, groupsApi } from '../../lib/api';
 import { HeaderAvatar } from '../../components/rx/HeaderAvatar';
+import { UserCircle } from '../../components/rx/UserCircle';
 import {
   PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS,
   GROUP_PHOTOS, GROUP_HISTORY, GROUP_PAYMENTS,
@@ -217,9 +218,7 @@ export function Activity() {
             <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {(groupDetail?.members || []).map((m: any) => (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ width: 30, height: 30, borderRadius: '50%', background: '#6E9A82', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
-                    {(m.displayName || '?').slice(0, 2).toUpperCase()}
-                  </span>
+                  <UserCircle name={m.displayName} avatarUrl={m.avatarUrl} />
                   <span style={{ flex: 1, fontSize: 13.5, color: 'var(--rx-ink-soft)' }}>{m.displayName}</span>
                 </div>
               ))}
@@ -238,9 +237,7 @@ export function Activity() {
               )}
               {realPlayers.map((pl: any) => (
                 <div key={pl.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ width: 30, height: 30, borderRadius: '50%', background: '#6E9A82', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
-                    {(pl.displayName || '?').slice(0, 2).toUpperCase()}
-                  </span>
+                  <UserCircle name={pl.displayName} avatarUrl={pl.avatarUrl} />
                   <span style={{ flex: 1, fontSize: 13.5, color: 'var(--rx-ink-soft)' }}>{pl.displayName}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: pl.paymentStatus === 'paid' ? 'var(--rx-green)' : 'var(--rx-clay)' }}>
                     {pl.paymentStatus === 'paid' ? 'In' : pl.status === 'confirmed' ? 'In' : 'Pending'}
