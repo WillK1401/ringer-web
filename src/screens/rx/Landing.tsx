@@ -43,7 +43,7 @@ export function Landing() {
           position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
           padding: 'calc(env(safe-area-inset-top) + 40px) 32px calc(env(safe-area-inset-bottom) + 32px)',
         }}>
-          <h1 style={{ margin: 0, fontSize: 42, lineHeight: 1.02, fontWeight: 700, letterSpacing: '-0.03em' }}>
+          <h1 style={{ margin: 0, fontSize: 33, lineHeight: 1.08, fontWeight: 700, letterSpacing: '-0.03em' }}>
             Your game.<br />Your people.
           </h1>
           <div style={{ width: 44, height: 4, borderRadius: 99, background: '#8FB56F', marginTop: 22 }} />
