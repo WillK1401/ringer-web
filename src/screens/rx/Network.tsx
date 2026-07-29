@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
-import { ACTIVE_NOW, CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
+import { CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
 import type { Person } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { usersApi, connectionsApi } from '../../lib/api';
@@ -154,28 +154,6 @@ export function Network() {
         <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Your people</div>
         <h2 style={{ margin: '5px 0 22px', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Your sporting circle.</h2>
 
-        {/* RIGHT NOW */}
-        <div style={{ background: 'var(--rx-green)', borderRadius: 24, padding: 20, marginBottom: 30 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#CDD8C0', marginBottom: 16 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F7F3EB' }} />
-            Right now
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {ACTIVE_NOW.map((e, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <Avatar person={e.person} size={40} />
-                  <span style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderRadius: '50%', background: '#F7F3EB', border: '2.5px solid #3E5236' }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, lineHeight: 1.35, color: '#fff' }}>{e.text}</div>
-                  <div style={{ fontSize: 12, color: '#CDD8C0', marginTop: 2 }}>{e.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* THE CIRCLE */}
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 6 }}>
           The people who show up
@@ -271,13 +249,6 @@ export function Network() {
                 {inviteSent ? 'Copied ✓' : 'Invite'}
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Memory closer */}
-        <div style={{ marginTop: 20, padding: 22, background: 'var(--rx-card)', borderRadius: 22 }}>
-          <div className="serif" style={{ fontSize: 18, lineHeight: 1.5, color: 'var(--rx-body)' }}>
-            You've brought three people into this circle yourself · and six you met through football now play tennis with you too.
           </div>
         </div>
       </div>

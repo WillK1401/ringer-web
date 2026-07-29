@@ -99,12 +99,7 @@ export function Discover() {
   return (
     <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ padding: '6px 24px 0' }}>
-        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>
-          Wednesday · 1 July · Toronto
-        </div>
-        <h2 style={{ margin: '5px 0 18px', fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em' }}>Evening, Will.</h2>
-
-        {/* WEEK STRIP */}
+        {/* WEEK STRIP · the greeting lives on Home now, so this screen opens straight into the week */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 26 }} role="group" aria-label="Your week">
           {WEEK.map((d, i) => {
             const on = i === activeDay;
@@ -379,44 +374,6 @@ export function Discover() {
             </div>
           </div>
         )}
-
-        {/* YOUR COMMUNITIES */}
-        <div style={{ marginTop: 36 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 18 }}>Your communities</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <button
-              onClick={() => navigate('/activity', { state: { group: 'wed' } })}
-              aria-label="Open The Wednesday Regulars"
-              style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', flexShrink: 0 }}>
-                <Avatar person={P.marcus} size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
-                <Avatar person={P.priya}  size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#6E9A82', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 600 }}>+22</div>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>The Wednesday Regulars</div>
-                <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>You + 24 · meets tonight</div>
-              </div>
-              <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
-            </button>
-            <button
-              onClick={() => navigate('/activity', { state: { group: 'tennis' } })}
-              aria-label="Open High Park Tennis"
-              style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', flexShrink: 0 }}>
-                <Avatar person={P.sofia} size={40} ring="#FBFAF7" style={{ marginRight: -14 }} />
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#A8635B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 600 }}>+11</div>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>High Park Tennis</div>
-                <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>12 members · 3 games this week</div>
-              </div>
-              <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
-            </button>
-          </div>
-        </div>
 
         {/* TRY SOMETHING NEW */}
         <div style={{ marginTop: 36 }}>
