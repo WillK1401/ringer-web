@@ -4,7 +4,7 @@ import { chatsApi, gamesApi, groupsApi, notificationsApi } from '../../lib/api';
 import { HeaderAvatar } from '../../components/rx/HeaderAvatar';
 import { UserCircle } from '../../components/rx/UserCircle';
 import {
-  PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS,
+  PENDING_ACTIONS, ACTIVITY_GROUPS, GROUP_MESSAGES, QUICK_ACTIONS, sampleEnabled,
   GROUP_PHOTOS, GROUP_HISTORY, GROUP_PAYMENTS,
 } from '../../lib/sampleWorld';
 
@@ -120,7 +120,8 @@ export function Activity() {
     setDraft('');
   };
 
-  const pending = PENDING_ACTIONS.filter(p => !resolved.has(p.id));
+  const showSample = sampleEnabled();
+  const pending = showSample ? PENDING_ACTIONS.filter(p => !resolved.has(p.id)) : [];
 
   // Open what the notification is about, and clear it
   const openNotification = (n: any) => {
@@ -587,8 +588,14 @@ export function Activity() {
             ))}
           </div>
         )}
+        {realGroups.length === 0 && !showSample && (
+          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--rx-muted)', background: 'var(--rx-card)', borderRadius: 16, padding: '14px 16px' }}>
+            No groups yet. Keep a crew together after a game and it becomes a
+            group you can call on again.
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {realGroups.length === 0 && ACTIVITY_GROUPS.map(g => (
+          {realGroups.length === 0 && showSample && ACTIVITY_GROUPS.map(g => (
             <button
               key={g.id}
               onClick={() => { setSel(g.id); setTab('messages'); setQuickSent(null); setSent([]); setDraft(''); }}

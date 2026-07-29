@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
-import { CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
+import { CIRCLE, WORLDS, PEOPLE, sampleEnabled } from '../../lib/sampleWorld';
 import type { Person } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { UserCircle } from '../../components/rx/UserCircle';
@@ -26,8 +26,10 @@ export function Network() {
   const [sel, setSel] = useState<string | null>(initialSel && WORLDS[initialSel] ? initialSel : null);
   const [connected, setConnected] = useState<Set<string>>(new Set());
   const [inviteSent, setInviteSent] = useState(false);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(SAMPLE_SUGGESTIONS);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>(sampleEnabled() ? SAMPLE_SUGGESTIONS : []);
   const [invite, setInvite]     = useState<{ code: string; url: string | null } | null>(null);
+  const [realCircle, setRealCircle] = useState<any[]>([]);
+  const showSample = sampleEnabled();
   const [query, setQuery]       = useState('');
   const [results, setResults]   = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -65,6 +67,7 @@ export function Network() {
       })
       .catch(() => {});
     invitesApi.getMine().then(setInvite).catch(() => {});
+    connectionsApi.getMyConnections().then(rows => setRealCircle(rows || [])).catch(() => {});
   }, []);
   const world = sel ? WORLDS[sel] : null;
 
@@ -194,12 +197,37 @@ export function Network() {
         <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--rx-ghost)' }}>Your people</div>
         <h2 style={{ margin: '5px 0 22px', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Your sporting circle.</h2>
 
-        {/* THE CIRCLE */}
+        {/* THE CIRCLE · real connections first; the sample cast only fills in
+            when the switch is on and you have none yet */}
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 6 }}>
           The people who show up
         </div>
+
+        {realCircle.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {realCircle.map((c: any) => (
+              <div key={c.user.id} style={{ display: 'flex', alignItems: 'center', gap: 15, padding: '18px 0', borderTop: '1px solid var(--rx-hairline)' }}>
+                <UserCircle name={c.user.displayName} avatarUrl={c.user.avatarUrl} size={54} background={PALETTE[0]} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{c.user.displayName}</div>
+                  <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', marginTop: 2 }}>
+                    @{c.user.handle}{c.user.city ? ` · ${c.user.city}` : ''}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {realCircle.length === 0 && !showSample && (
+          <div style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--rx-muted)', padding: '16px 0 4px', borderTop: '1px solid var(--rx-hairline)', marginTop: 6 }}>
+            No connections yet. Search for someone below, or share your invite so
+            the people you play with can join.
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {CIRCLE.map(row => {
+          {realCircle.length === 0 && showSample && CIRCLE.map(row => {
             const person = WORLDS[row.id].person;
             return (
               <button

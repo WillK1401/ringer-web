@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useUser } from '@clerk/clerk-react';
-import { loadProfile, saveProfile, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
+import { loadProfile, saveProfile, sampleEnabled, TRAITS, ROUTINE, MY_COMMUNITIES, TRUSTED_BY, JOURNEY, MEMORIES } from '../../lib/sampleWorld';
 import { usersApi } from '../../lib/api';
 
 const eyebrow = (color: string): React.CSSProperties => ({
@@ -15,6 +15,7 @@ export function SportingLife() {
   const [openTrait, setOpenTrait] = useState<string | null>(null);
   const [me, setMe] = useState(loadProfile());
   const photo = user?.hasImage ? user.imageUrl : null;
+  const showSample = sampleEnabled();
 
   // Hydrate identity from the real account when signed in
   useEffect(() => {
@@ -65,6 +66,10 @@ export function SportingLife() {
           <div className="serif" style={{ fontSize: 17, color: 'var(--rx-body)' }}>{me.oneLiner}</div>
         </div>
 
+        {/* Everything from here to Your circle is the sample vision layer:
+            traits, routine, communities and trust stats are not yet computed
+            from real play, so they hide when sample data is switched off. */}
+        {showSample && (<>
         {/* IDENTITY CHIPS · tap to verify, never self-written */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 32 }}>
           {TRAITS.map(t => {
@@ -136,6 +141,7 @@ export function SportingLife() {
             </div>
           ))}
         </div>
+        </>)}
 
         {/* YOUR CIRCLE · Network lives here now (no longer a bottom-bar tab) */}
         <button
@@ -153,7 +159,8 @@ export function SportingLife() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: '#B0A99B' }} aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
 
-        {/* SPORTING JOURNEY · the story, told by other people */}
+        {/* SPORTING JOURNEY · the story, told by other people (sample) */}
+        {showSample && (
         <div style={{ paddingTop: 26, borderTop: '1px solid var(--rx-hairline)' }}>
           <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 6 }}>Your sporting journey</div>
           <div className="serif" style={{ fontSize: 16, color: 'var(--rx-muted)', marginBottom: 24 }}>{me.journeyLine}</div>
@@ -201,6 +208,7 @@ export function SportingLife() {
             </div>
           </div>
         </div>
+        )}
 
       </div>
     </div>

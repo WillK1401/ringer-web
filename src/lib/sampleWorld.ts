@@ -261,6 +261,36 @@ export const GROUP_PAYMENTS = {
   ],
 };
 
+// ── Sample data switch ──────────────────────────────────────────────────
+//
+// The cast below (Marcus, Priya, the Wednesday Regulars…) is a *vision layer*:
+// it fills screens that have no real data yet, so a fresh account looks like a
+// working app rather than a set of blank panels. That matters for App Store
+// review, but it also hides whether the real plumbing works.
+//
+// This switch turns it off so you can see the honest app. Order of precedence:
+//   1. a per-device override set in Account settings (localStorage)
+//   2. VITE_SAMPLE_DATA=off at build time
+//   3. on by default
+//
+// Note this does NOT affect loadProfile/saveProfile below — that is your own
+// account, not sample content.
+
+const SAMPLE_KEY = 'rx-sample-data';
+
+export function sampleEnabled(): boolean {
+  try {
+    const override = localStorage.getItem(SAMPLE_KEY);
+    if (override === 'off') return false;
+    if (override === 'on') return true;
+  } catch { /* storage unavailable · fall through to the build-time default */ }
+  return import.meta.env.VITE_SAMPLE_DATA !== 'off';
+}
+
+export function setSampleEnabled(on: boolean) {
+  try { localStorage.setItem(SAMPLE_KEY, on ? 'on' : 'off'); } catch { /* no-op */ }
+}
+
 // ── Editable profile (prototype persistence via localStorage) ───────────
 
 export interface Profile {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { paymentsApi } from '../../lib/api';
+import { sampleEnabled, setSampleEnabled } from '../../lib/sampleWorld';
 
 const eyebrow: React.CSSProperties = {
   fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -19,6 +20,7 @@ export function AccountSettings() {
   const { user } = useUser();
   const [stripe, setStripe]   = useState<{ onboarded: boolean; chargesEnabled: boolean } | null>(null);
   const [busy, setBusy]       = useState(false);
+  const [sampleOn, setSampleOn] = useState(sampleEnabled());
 
   useEffect(() => {
     paymentsApi.getStatus().then(setStripe).catch(() => setStripe(null));
@@ -81,6 +83,35 @@ export function AccountSettings() {
               {busy ? 'Opening Stripe…' : stripe?.onboarded ? 'Finish Stripe setup' : 'Connect Stripe'}
             </button>
           )}
+        </div>
+
+        {/* SAMPLE DATA · see the app with only your real data */}
+        <div style={eyebrow}>Sample data</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 30 }}>
+          <div style={row}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>Show example content</div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--rx-faint)', marginTop: 2 }}>
+                Fills empty screens with an example crew. Turn it off to see only
+                your real games and connections.
+              </div>
+            </div>
+            <button
+              onClick={() => { setSampleEnabled(!sampleOn); setSampleOn(!sampleOn); window.location.reload(); }}
+              role="switch"
+              aria-checked={sampleOn}
+              aria-label="Show example content"
+              style={{
+                width: 50, height: 30, borderRadius: 99, border: 'none', flexShrink: 0, cursor: 'pointer',
+                background: sampleOn ? 'var(--rx-green)' : '#D8D2C7',
+                display: 'flex', alignItems: 'center', padding: 3,
+                justifyContent: sampleOn ? 'flex-end' : 'flex-start',
+                transition: 'background 180ms ease',
+              }}
+            >
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', display: 'block' }} />
+            </button>
+          </div>
         </div>
 
         {/* ACCOUNT */}

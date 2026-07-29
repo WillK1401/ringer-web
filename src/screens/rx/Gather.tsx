@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GATHER, PEOPLE } from '../../lib/sampleWorld';
+import { GATHER, PEOPLE, sampleEnabled } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { useNavigate } from 'react-router';
 import { gamesApi, groupsApi, connectionsApi } from '../../lib/api';
@@ -123,10 +123,15 @@ export function Gather() {
   const [realGroups, setRealGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
   const [makeGroup, setMakeGroup] = useState(false);
+  // Sample crew only as a placeholder · real connections replace it on load
   const [crewOptions, setCrewOptions] = useState<any[]>(
-    GATHER.core.map(pp => ({ id: pp.id, name: pp.first, init: pp.init, color: pp.color, real: false }))
+    sampleEnabled()
+      ? GATHER.core.map(pp => ({ id: pp.id, name: pp.first, init: pp.init, color: pp.color, real: false }))
+      : []
   );
-  const [crewSel, setCrewSel] = useState<Set<string>>(new Set(GATHER.core.map(pp => pp.id)));
+  const [crewSel, setCrewSel] = useState<Set<string>>(
+    new Set(sampleEnabled() ? GATHER.core.map(pp => pp.id) : [])
+  );
   const [gameId, setGameId] = useState<string | null>(null);
   const [players, setPlayers] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -338,7 +343,7 @@ export function Gather() {
           )}
 
           {/* Sample group · shown until you have a real one */}
-          {realGroups.length === 0 && (
+          {realGroups.length === 0 && sampleEnabled() && (
           <div style={{ background: 'var(--rx-card)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 14 }}>This week</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>

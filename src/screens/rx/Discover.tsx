@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { gamesApi } from '../../lib/api';
-import { PEOPLE } from '../../lib/sampleWorld';
+import { PEOPLE, sampleEnabled } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { GameDetailUnfold } from './GameDetailUnfold';
 
@@ -80,6 +80,7 @@ export function Discover() {
   const [interested, setInterested] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery]           = useState('');
+  const showSample = sampleEnabled();
 
   const dayPlan = WEEK[activeDay].plan;
   const results = ALL_GAMES.filter(g =>
@@ -99,7 +100,10 @@ export function Discover() {
   return (
     <div className="scr" style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ padding: '6px 24px 0' }}>
-        {/* WEEK STRIP · the greeting lives on Home now, so this screen opens straight into the week */}
+        {/* WEEK STRIP · the greeting lives on Home now, so this screen opens
+            straight into the week. The strip's plans are sample content, so it
+            hides entirely when sample data is switched off. */}
+        {showSample && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 26 }} role="group" aria-label="Your week">
           {WEEK.map((d, i) => {
             const on = i === activeDay;
@@ -124,9 +128,10 @@ export function Discover() {
             );
           })}
         </div>
+        )}
 
         {/* Selected day context · the strip answers, not just decorates */}
-        {activeDay !== 2 && (
+        {showSample && activeDay !== 2 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--rx-card)', borderRadius: 14, padding: '12px 16px', marginTop: -12, marginBottom: 26 }}>
             {dayPlan ? (
               <>
@@ -197,6 +202,19 @@ export function Discover() {
           </div>
         )}
         </>
+        ) : !showSample ? (
+        <div style={{ background: 'var(--rx-card)', borderRadius: 28, padding: 24 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 10 }}>No games yet</div>
+          <div style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--rx-muted)' }}>
+            Nothing in your calendar. Gather a game, or check what your network has on below.
+          </div>
+          <button
+            onClick={() => navigate('/gather')}
+            style={{ width: '100%', marginTop: 18, fontSize: 15.5, fontWeight: 600, padding: 15, borderRadius: 99, border: 'none', cursor: 'pointer', background: 'var(--rx-green)', color: '#fff', letterSpacing: '-0.01em' }}
+          >
+            Gather a game
+          </button>
+        </div>
         ) : (
         <>
         {/* HERO · Your Wednesday football */}
@@ -375,7 +393,8 @@ export function Discover() {
           </div>
         )}
 
-        {/* TRY SOMETHING NEW */}
+        {/* TRY SOMETHING NEW · sample recommendation, not yet computed for real */}
+        {showSample && (
         <div style={{ marginTop: 36 }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-ghost)', marginBottom: 14 }}>Try something new</div>
           <div style={{ background: '#fff', border: '1px solid #EEEAE3', borderRadius: 22, padding: 20 }}>
@@ -405,6 +424,7 @@ export function Discover() {
             </button>
           </div>
         </div>
+        )}
 
         {/* SEARCH · secondary, refines rather than replaces */}
         {searchOpen ? (
