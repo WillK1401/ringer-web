@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router';
-import { chatsApi, gamesApi, groupsApi } from '../../lib/api';
+import { useLocation, useNavigate } from 'react-router';
+import { chatsApi, gamesApi, groupsApi, notificationsApi } from '../../lib/api';
 import { HeaderAvatar } from '../../components/rx/HeaderAvatar';
 import { UserCircle } from '../../components/rx/UserCircle';
 import {
@@ -24,6 +24,7 @@ const eyebrow = (color: string): React.CSSProperties => ({
 
 export function Activity() {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialGroup = (location.state as { group?: string } | null)?.group ?? null;
   const [sel, setSel]           = useState<string | null>(
     initialGroup && ACTIVITY_GROUPS.some(g => g.id === initialGroup) ? initialGroup : null
@@ -38,6 +39,7 @@ export function Activity() {
   const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
   const [realRows, setRealRows]   = useState<any[]>([]);
   const [pastOpen, setPastOpen]   = useState(false);
+  const [notifs, setNotifs]       = useState<any[]>([]);
   const [realSel, setRealSel]     = useState<any | null>(null);
   const [realTab, setRealTab]     = useState<'messages' | 'players'>('messages');
   const [realMsgs, setRealMsgs]   = useState<any[]>([]);
@@ -47,6 +49,7 @@ export function Activity() {
   const [groupDetail, setGroupDetail] = useState<any | null>(null);
 
   useEffect(() => {
+    notificationsApi.list().then(ns => setNotifs((ns || []).filter((n: any) => !n.read))).catch(() => {});
     groupsApi.getMyGroups().then(gs => setRealGroups(gs || [])).catch(() => {});
     chatsApi.getMyChats()
       .then(rows => {
@@ -118,6 +121,13 @@ export function Activity() {
   };
 
   const pending = PENDING_ACTIONS.filter(p => !resolved.has(p.id));
+
+  // Open what the notification is about, and clear it
+  const openNotification = (n: any) => {
+    notificationsApi.markRead(n.id).catch(() => {});
+    setNotifs(prev => prev.filter(x => x.id !== n.id));
+    if (n.gameId) navigate(`/game/${n.gameId}`);
+  };
   const upcomingRows = realRows.filter(r => r.upcoming);
   const pastRows     = realRows.filter(r => !r.upcoming);
   const group = sel ? ACTIVITY_GROUPS.find(g => g.id === sel) : null;
@@ -431,8 +441,32 @@ export function Activity() {
         </div>
         <h2 style={{ margin: '5px 0 24px', fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>Your sporting home.</h2>
 
-        {/* NEEDS YOU · pinned action queue */}
-        {pending.length > 0 ? (
+        {/* NEEDS YOU · real notifications first (invites, games opened to you),
+            with the sample queue as the fallback for a fresh account */}
+        {notifs.length > 0 ? (
+          <div style={{ marginBottom: 30 }}>
+            <div style={eyebrow('var(--rx-green)')}>Needs you</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {notifs.map(n => (
+                <button
+                  key={n.id}
+                  onClick={() => openNotification(n)}
+                  aria-label={`${n.actor?.displayName ?? 'Someone'} ${n.title}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #EEEAE3', borderRadius: 18, padding: 15, cursor: 'pointer' }}
+                >
+                  <UserCircle name={n.actor?.displayName} avatarUrl={n.actor?.avatarUrl} size={36} background="var(--rx-clay)" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.3 }}>
+                      {n.actor?.displayName ?? 'Someone'} {n.title}
+                    </div>
+                    {n.body && <div style={{ fontSize: 12, color: 'var(--rx-faint)', marginTop: 2 }}>{n.body}</div>}
+                  </div>
+                  <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : pending.length > 0 ? (
           <div style={{ marginBottom: 30 }}>
             <div style={eyebrow('var(--rx-green)')}>Needs you</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
