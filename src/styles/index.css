@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -215,8 +215,10 @@ button:focus { outline: none; }
   background: var(--rx-paper);
   -webkit-font-smoothing: antialiased;
 }
+/* Kept as a hook for editorial sublines, but set in the sans family ·
+   the serif accent was dropped (it rendered inconsistently). */
 .rx .serif {
-  font-family: 'Newsreader', Georgia, serif;
+  font-family: 'Schibsted Grotesk', system-ui, sans-serif;
   font-style: normal;
 }
 .rx button { font-family: inherit; }
