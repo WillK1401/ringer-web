@@ -81,6 +81,7 @@ export const usersApi = {
   updateMe: (data: any) => request<any>('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
   getUser: (id: string) => request<any>(`/users/${id}`),
   getSuggestions: () => request<any[]>('/users/me/suggestions'),
+  search: (q: string) => request<any[]>(`/users/search?q=${encodeURIComponent(q)}`),
 };
 
 // ── Payments ───────────────────────────────────────────────────────────────

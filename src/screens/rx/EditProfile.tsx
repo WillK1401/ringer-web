@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useUser } from '@clerk/clerk-react';
 import { loadProfile, saveProfile } from '../../lib/sampleWorld';
@@ -25,6 +25,13 @@ export function EditProfile() {
   const [saved, setSaved] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState('');
+  const [handle, setHandle] = useState('');
+  const [saveError, setSaveError] = useState('');
+
+  // The handle is how people find you in search · load the real one
+  useEffect(() => {
+    usersApi.getMe().then(u => { if (u?.handle) setHandle(String(u.handle)); }).catch(() => {});
+  }, []);
 
   const photo = user?.hasImage ? user.imageUrl : null;
 
@@ -70,11 +77,24 @@ export function EditProfile() {
 
   const initial = (p.name.trim()[0] || 'W').toUpperCase();
 
-  const onSave = () => {
+  const onSave = async () => {
     const name = p.name.trim() || 'Player';
+    const nextHandle = handle.trim().toLowerCase().replace(/^@/, '');
+    setSaveError('');
+
+    if (nextHandle && !/^[a-z0-9_]{2,30}$/.test(nextHandle)) {
+      setSaveError('Handles can use letters, numbers and underscores, 2 to 30 characters.');
+      return;
+    }
+
     saveProfile({ name, city: p.city.trim(), oneLiner: p.oneLiner.trim() });
-    // Push to the real account; local copy is already saved either way
-    usersApi.updateMe({ displayName: name, city: p.city.trim() }).catch(() => {});
+    try {
+      await usersApi.updateMe({ displayName: name, city: p.city.trim(), ...(nextHandle ? { handle: nextHandle } : {}) });
+    } catch (e: any) {
+      // Most likely the handle is taken · the local copy is already saved
+      setSaveError(/taken/i.test(e?.message ?? '') ? 'That handle is already taken · try another.' : 'Could not save · try again.');
+      return;
+    }
     setSaved(true);
     setTimeout(() => navigate('/profile'), 500);
   };
@@ -165,6 +185,25 @@ export function EditProfile() {
             <input id="ep-name" style={field} value={p.name} onChange={set('name')} placeholder="Your name" />
           </div>
           <div>
+            <label style={label} htmlFor="ep-handle">Handle</label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: 'var(--rx-ghost)' }}>@</span>
+              <input
+                id="ep-handle"
+                style={{ ...field, paddingLeft: 30 }}
+                value={handle}
+                onChange={e => { setHandle(e.target.value); setSaved(false); setSaveError(''); }}
+                placeholder="yourname"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--rx-ghost)', marginTop: 6 }}>
+              How people find you · share it and anyone can add you.
+            </div>
+          </div>
+          <div>
             <label style={label} htmlFor="ep-city">City</label>
             <input id="ep-city" style={field} value={p.city} onChange={set('city')} placeholder="Where you play" />
           </div>
@@ -184,6 +223,12 @@ export function EditProfile() {
         >
           {saved ? 'Saved ✓' : 'Save'}
         </button>
+
+        {saveError && (
+          <div role="alert" style={{ fontSize: 13, color: 'var(--rx-error)', marginTop: 10, textAlign: 'center' }}>
+            {saveError}
+          </div>
+        )}
 
         {/* Account & payments · the legacy settings surface, demoted */}
         <div style={{ marginTop: 34 }}>

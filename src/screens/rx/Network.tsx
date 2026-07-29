@@ -3,6 +3,7 @@ import { useLocation } from 'react-router';
 import { CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
 import type { Person } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
+import { UserCircle } from '../../components/rx/UserCircle';
 import { usersApi, connectionsApi } from '../../lib/api';
 
 const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
@@ -26,6 +27,23 @@ export function Network() {
   const [connected, setConnected] = useState<Set<string>>(new Set());
   const [inviteSent, setInviteSent] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>(SAMPLE_SUGGESTIONS);
+  const [query, setQuery]       = useState('');
+  const [results, setResults]   = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  // Debounced search · results are scoped to your wider network plus exact handles
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) { setResults([]); setSearching(false); return; }
+    setSearching(true);
+    const t = setTimeout(() => {
+      usersApi.search(term)
+        .then(rows => setResults(rows || []))
+        .catch(() => setResults([]))
+        .finally(() => setSearching(false));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [query]);
 
   // Real graph suggestions when the network has them; sample cast otherwise
   useEffect(() => {
@@ -51,6 +69,11 @@ export function Network() {
   const connect = (sug: Suggestion) => {
     setConnected(prev => new Set(prev).add(sug.person.id));
     if (sug.real) connectionsApi.send(sug.person.id).catch(() => {});
+  };
+
+  const connectById = (userId: string) => {
+    setConnected(prev => new Set(prev).add(userId));
+    connectionsApi.send(userId).catch(() => {});
   };
 
   if (world) {
@@ -198,8 +221,66 @@ export function Network() {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rx-green)', marginBottom: 6 }}>
             Grow your circle
           </div>
+
+          {/* Find someone · your wider network, or anyone by their exact handle */}
+          <div style={{ marginTop: 12, marginBottom: 4 }}>
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              aria-label="Search for people by name or handle"
+              placeholder="Search by name or @handle"
+              style={{
+                width: '100%', fontSize: 15, fontFamily: 'inherit', padding: '12px 16px',
+                borderRadius: 14, border: '1px solid #E7E2D9', background: '#fff',
+                color: 'var(--rx-ink)', outline: 'none',
+              }}
+            />
+            {query.trim().length >= 2 && (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {searching && (
+                  <div style={{ fontSize: 13, color: 'var(--rx-ghost)', padding: '14px 0' }}>Searching…</div>
+                )}
+                {!searching && results.length === 0 && (
+                  <div style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--rx-muted)', padding: '14px 0' }}>
+                    No one found. You can find people in your wider network by name, or anyone by their exact handle.
+                  </div>
+                )}
+                {results.map((r: any) => {
+                  const done = connected.has(r.id);
+                  return (
+                    <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderTop: '1px solid var(--rx-hairline)' }}>
+                      <UserCircle name={r.displayName} avatarUrl={r.avatarUrl} size={44} background={PALETTE[0]} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>{r.displayName}</div>
+                        <div style={{ fontSize: 12.5, color: 'var(--rx-muted)', marginTop: 2 }}>@{r.handle} · {r.reason}</div>
+                      </div>
+                      {r.connected ? (
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-faint)', flexShrink: 0 }}>Connected</span>
+                      ) : (
+                        <button
+                          onClick={() => connectById(r.id)}
+                          disabled={done}
+                          aria-label={done ? `Request sent to ${r.displayName}` : `Connect with ${r.displayName}`}
+                          style={{
+                            fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
+                            cursor: done ? 'default' : 'pointer',
+                            ...(done
+                              ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
+                              : { border: '1.5px solid var(--rx-green)', background: 'none', color: 'var(--rx-green)' }),
+                          }}
+                        >
+                          {done ? 'Sent ✓' : 'Connect'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {suggestions.map((sug) => {
+            {query.trim().length < 2 && suggestions.map((sug) => {
               const { person, reason } = sug;
               const done = connected.has(person.id);
               return (
