@@ -37,6 +37,7 @@ export function Activity() {
   // Real game threads from the backend
   const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
   const [realRows, setRealRows]   = useState<any[]>([]);
+  const [pastOpen, setPastOpen]   = useState(false);
   const [realSel, setRealSel]     = useState<any | null>(null);
   const [realTab, setRealTab]     = useState<'messages' | 'players'>('messages');
   const [realMsgs, setRealMsgs]   = useState<any[]>([]);
@@ -117,6 +118,8 @@ export function Activity() {
   };
 
   const pending = PENDING_ACTIONS.filter(p => !resolved.has(p.id));
+  const upcomingRows = realRows.filter(r => r.upcoming);
+  const pastRows     = realRows.filter(r => !r.upcoming);
   const group = sel ? ACTIVITY_GROUPS.find(g => g.id === sel) : null;
 
   const resolve = (id: string) => setResolved(prev => new Set(prev).add(id));
@@ -469,19 +472,20 @@ export function Activity() {
           </div>
         )}
 
-        {/* YOUR GAMES · real threads from the backend */}
-        {realRows.length > 0 && (
+        {/* YOUR GAMES · upcoming get the full card; past collapse behind a toggle
+            so the groups list stays within reach */}
+        {upcomingRows.length > 0 && (
           <>
             <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 14 }}>Your games</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 30 }}>
-              {realRows.map(r => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: pastRows.length > 0 ? 12 : 30 }}>
+              {upcomingRows.map(r => (
                 <button key={r.id} onClick={() => openReal(r)} aria-label={`Open ${r.name}`}
-                  style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #EEEAE3', borderRadius: 20, padding: 16, cursor: 'pointer', opacity: r.upcoming ? 1 : 0.55 }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #EEEAE3', borderRadius: 20, padding: 16, cursor: 'pointer' }}>
                   <span style={{ width: 44, height: 44, borderRadius: '50%', background: r.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, flexShrink: 0 }}>{r.init}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>{r.name}</div>
                     <div style={{ fontSize: 13, color: 'var(--rx-faint)', marginTop: 2 }}>
-                      {fmtWhen(r.kickoffAt)} · {r.role === 'organiser' ? 'hosting' : 'playing'}{r.upcoming ? '' : ' · past'}
+                      {fmtWhen(r.kickoffAt)} · {r.role === 'organiser' ? 'hosting' : 'playing'}
                     </div>
                   </div>
                   <span style={{ fontSize: 16, color: '#C2BBB0' }}>›</span>
@@ -489,6 +493,42 @@ export function Activity() {
               ))}
             </div>
           </>
+        )}
+
+        {/* PAST GAMES · collapsed by default, one quiet line */}
+        {pastRows.length > 0 && (
+          <div style={{ marginBottom: 30 }}>
+            {upcomingRows.length === 0 && <div style={{ ...eyebrow('var(--rx-green)'), marginBottom: 14 }}>Your games</div>}
+            <button
+              onClick={() => setPastOpen(o => !o)}
+              aria-expanded={pastOpen}
+              aria-label={`${pastOpen ? 'Hide' : 'Show'} past games`}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'none', border: 'none', padding: '6px 0', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: 'var(--rx-faint)' }}
+            >
+              <span style={{ display: 'inline-flex', transform: pastOpen ? 'rotate(90deg)' : 'none', transition: 'transform .18s ease' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              Past games ({pastRows.length})
+            </button>
+
+            {pastOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+                {pastRows.map(r => (
+                  <button key={r.id} onClick={() => openReal(r)} aria-label={`Open ${r.name}`}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer' }}>
+                    <span style={{ width: 30, height: 30, borderRadius: '50%', background: r.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0, opacity: 0.75 }}>{r.init}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--rx-body)' }}>{r.name}</div>
+                      <div style={{ fontSize: 12.5, color: 'var(--rx-ghost)' }}>{fmtWhen(r.kickoffAt)}</div>
+                    </div>
+                    <span style={{ fontSize: 15, color: '#C2BBB0' }}>›</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* YOUR GROUPS · the calm, permanent list */}
