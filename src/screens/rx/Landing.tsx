@@ -24,16 +24,6 @@ export function Landing() {
         padding: 'calc(env(safe-area-inset-top) + 40px) 32px calc(env(safe-area-inset-bottom) + 32px)',
         overflow: 'hidden',
       }}>
-        {/* Faint concentric-circle motif · the trust circles, at rest */}
-        <div aria-hidden style={{
-          position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%,-50%)',
-          width: 520, height: 520, borderRadius: '50%',
-          border: '1px solid rgba(251,250,247,0.06)',
-        }}>
-          <div style={{ position: 'absolute', inset: 90, borderRadius: '50%', border: '1px solid rgba(251,250,247,0.08)' }} />
-          <div style={{ position: 'absolute', inset: 180, borderRadius: '50%', border: '1px solid rgba(251,250,247,0.10)' }} />
-        </div>
-
         {/* Wordmark */}
         <div style={{ position: 'relative', fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>
           ringer<span style={{ color: '#8FB56F' }}>.</span>
