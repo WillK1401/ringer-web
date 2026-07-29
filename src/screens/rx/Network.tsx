@@ -4,7 +4,7 @@ import { CIRCLE, WORLDS, PEOPLE } from '../../lib/sampleWorld';
 import type { Person } from '../../lib/sampleWorld';
 import { Avatar } from '../../components/rx/Avatar';
 import { UserCircle } from '../../components/rx/UserCircle';
-import { usersApi, connectionsApi } from '../../lib/api';
+import { usersApi, connectionsApi, invitesApi } from '../../lib/api';
 
 const PALETTE = ['#B0714F', '#5B7AA8', '#6E9A82', '#8E7BA8', '#A8935B', '#A8635B'];
 
@@ -27,6 +27,7 @@ export function Network() {
   const [connected, setConnected] = useState<Set<string>>(new Set());
   const [inviteSent, setInviteSent] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>(SAMPLE_SUGGESTIONS);
+  const [invite, setInvite]     = useState<{ code: string; url: string | null } | null>(null);
   const [query, setQuery]       = useState('');
   const [results, setResults]   = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -63,12 +64,28 @@ export function Network() {
         })));
       })
       .catch(() => {});
+    invitesApi.getMine().then(setInvite).catch(() => {});
   }, []);
   const world = sel ? WORLDS[sel] : null;
 
   const connect = (sug: Suggestion) => {
     setConnected(prev => new Set(prev).add(sug.person.id));
     if (sug.real) connectionsApi.send(sug.person.id).catch(() => {});
+  };
+
+  // Native share sheet where available, clipboard otherwise
+  const shareInvite = async () => {
+    if (!invite) return;
+    const link = invite.url || `${window.location.origin}/join/${invite.code}`;
+    const text = `Join me on Ringer · ${link}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Join me on Ringer', text: 'Join me on Ringer', url: link });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setInviteSent(true);
+    } catch { /* dismissed the share sheet · nothing to do */ }
   };
 
   const connectById = (userId: string) => {
@@ -308,26 +325,28 @@ export function Network() {
               );
             })}
 
-            {/* Invite from contacts */}
+            {/* Your invite · Ringer is invite only, so this is how people get in */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid var(--rx-hairline)' }}>
               <div style={{ width: 48, height: 48, borderRadius: '50%', border: '2px dashed #C2B9A9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#7C7669', flexShrink: 0 }}>+</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Invite from contacts</div>
-                <div style={{ fontSize: 12.5, color: 'var(--rx-muted)', marginTop: 2 }}>Bring someone who isn't on Ringer yet</div>
+                <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Invite someone</div>
+                <div style={{ fontSize: 12.5, color: 'var(--rx-muted)', marginTop: 2 }}>
+                  {invite?.code ? `Your code · ${invite.code}` : 'Bring someone who isn’t on Ringer yet'}
+                </div>
               </div>
               <button
-                onClick={() => setInviteSent(true)}
-                disabled={inviteSent}
-                aria-label="Copy invite link"
+                onClick={shareInvite}
+                disabled={!invite}
+                aria-label="Share your invite link"
                 style={{
                   fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 99, flexShrink: 0,
-                  cursor: inviteSent ? 'default' : 'pointer',
+                  cursor: invite ? 'pointer' : 'default',
                   ...(inviteSent
                     ? { border: 'none', background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
-                    : { border: '1.5px solid #D8D2C7', background: 'none', color: 'var(--rx-body)' }),
+                    : { border: '1.5px solid #D8D2C7', background: 'none', color: 'var(--rx-body)', opacity: invite ? 1 : 0.5 }),
                 }}
               >
-                {inviteSent ? 'Copied ✓' : 'Invite'}
+                {inviteSent ? 'Copied ✓' : 'Share'}
               </button>
             </div>
           </div>

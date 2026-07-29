@@ -1,4 +1,5 @@
-import { createBrowserRouter, Outlet, useLocation } from 'react-router';
+import { useEffect, useState } from 'react';
+import { createBrowserRouter, Outlet, useLocation, useParams, Navigate } from 'react-router';
 import { AnimatePresence } from 'framer-motion';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { PageTransition } from '../components/PageTransition';
@@ -25,7 +26,9 @@ import { Groups } from '../screens/Groups';
 import { GroupDetail } from '../screens/GroupDetail';
 import { MyGames } from '../screens/MyGames';
 import { TabBar } from '../components/rx/TabBar';
-import { Landing } from '../screens/rx/Landing';
+import { Landing, Splash } from '../screens/rx/Landing';
+import { InviteGate, savePendingInvite } from '../screens/rx/InviteGate';
+import { usersApi } from '../lib/api';
 import { AccountSettings } from '../screens/rx/AccountSettings';
 
 /**
@@ -33,27 +36,53 @@ import { AccountSettings } from '../screens/rx/AccountSettings';
  * tab bar pinned to the base. On desktop the column is centred so the app
  * still previews sensibly in a browser.
  */
+/** Invite gate · a signed-in account only reaches the app once admitted. */
+function AdmittedOnly({ children }: { children: React.ReactNode }) {
+  const [admitted, setAdmitted] = useState<boolean | null>(null);
+
+  const check = () => {
+    usersApi.getMe()
+      .then(u => setAdmitted(Boolean(u?.admitted)))
+      // If we cannot tell (offline, API down), don't lock a real member out
+      .catch(() => setAdmitted(true));
+  };
+  useEffect(check, []);
+
+  if (admitted === null) return <Splash />;
+  if (!admitted) return <InviteGate onAdmitted={() => setAdmitted(true)} />;
+  return <>{children}</>;
+}
+
+/** /join/:code · keep the code, then let the normal auth flow run. */
+function JoinWithCode() {
+  const { code } = useParams();
+  useEffect(() => { if (code) savePendingInvite(code.toUpperCase()); }, [code]);
+  return <Navigate to="/" replace />;
+}
+
 function ProtectedLayout() {
   const location = useLocation();
   return (
     <>
       <SignedIn>
-        <div className="rx" style={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', background: '#EEEBE5' }}>
-          <div style={{
-            position: 'relative', width: '100%', maxWidth: 430, height: '100dvh',
-            display: 'flex', flexDirection: 'column', overflow: 'hidden',
-            background: 'var(--rx-paper)',
-          }}>
-            <div className="scr" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingTop: 'calc(12px + env(safe-area-inset-top))' }}>
-              <AnimatePresence mode="wait" initial={false}>
-                <PageTransition key={location.pathname}>
-                  <Outlet />
-                </PageTransition>
-              </AnimatePresence>
+        <AdmittedOnly>
+          <div className="rx" style={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', background: '#EEEBE5' }}>
+            <div style={{
+              position: 'relative', width: '100%', maxWidth: 430, height: '100dvh',
+              display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              background: 'var(--rx-paper)',
+            }}>
+              <div className="scr" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', paddingTop: 'calc(12px + env(safe-area-inset-top))' }}>
+                <AnimatePresence mode="wait" initial={false}>
+                  <PageTransition key={location.pathname}>
+                    <Outlet />
+                  </PageTransition>
+                </AnimatePresence>
+              </div>
+              <TabBar />
             </div>
-            <TabBar />
           </div>
-        </div>
+        </AdmittedOnly>
       </SignedIn>
       <SignedOut><Landing /></SignedOut>
     </>
@@ -89,6 +118,7 @@ export const router = createBrowserRouter([
       { path: '/groups/:id',     Component: GroupDetail },
     ],
   },
+  { path: '/join/:code', Component: JoinWithCode },
   { path: '/sign-in/*', Component: SignIn },
   { path: '/sign-up/*', Component: SignUp },
 ]);

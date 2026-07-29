@@ -84,6 +84,17 @@ export const usersApi = {
   search: (q: string) => request<any[]>(`/users/search?q=${encodeURIComponent(q)}`),
 };
 
+// ── Invites ────────────────────────────────────────────────────────────────
+
+export const invitesApi = {
+  getMine: () => request<{ code: string; url: string | null }>('/invites/me'),
+  redeem: (code: string) =>
+    request<{ admitted: boolean; inviterId: string | null }>('/invites/redeem', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    }),
+};
+
 // ── Payments ───────────────────────────────────────────────────────────────
 
 export const paymentsApi = {
