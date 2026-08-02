@@ -268,10 +268,14 @@ export const GROUP_PAYMENTS = {
 // working app rather than a set of blank panels. That matters for App Store
 // review, but it also hides whether the real plumbing works.
 //
-// This switch turns it off so you can see the honest app. Order of precedence:
+// It is OFF by default: the app is invite only, so everyone arrives connected
+// to whoever invited them and rarely sees a truly empty screen. Showing real
+// testers a fictional crew is worse than showing them a sparse one.
+//
+// Order of precedence:
 //   1. a per-device override set in Account settings (localStorage)
-//   2. VITE_SAMPLE_DATA=off at build time
-//   3. on by default
+//   2. VITE_SAMPLE_DATA=on at build time
+//   3. off by default
 //
 // Note this does NOT affect loadProfile/saveProfile below — that is your own
 // account, not sample content.
@@ -284,7 +288,7 @@ export function sampleEnabled(): boolean {
     if (override === 'off') return false;
     if (override === 'on') return true;
   } catch { /* storage unavailable · fall through to the build-time default */ }
-  return import.meta.env.VITE_SAMPLE_DATA !== 'off';
+  return import.meta.env.VITE_SAMPLE_DATA === 'on';
 }
 
 export function setSampleEnabled(on: boolean) {
