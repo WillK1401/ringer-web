@@ -119,6 +119,8 @@ export function Gather() {
   const [time, setTime]           = useState<string | null>(null);
   const [customTime, setCustomTime] = useState('');
   const [size, setSize]           = useState<number | null>(null);
+  // Players already sorted off-app · they hold slots but never join through Ringer
+  const [reserved, setReserved]   = useState(0);
   const [activated, setActivated] = useState(false);
   const [realGroups, setRealGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
@@ -238,6 +240,7 @@ export function Gather() {
         sport: activated ? 'Football' : (sport ?? 'Football'),
         kickoffAt,
         playerCount: activated ? 10 : (size ?? 8),
+        reservedSlots: activated ? 0 : reserved,
         pitchCost: 0,
         visibility: initialVis,
         ...(realInvitees.length ? { invitees: realInvitees } : {}),
@@ -253,9 +256,11 @@ export function Gather() {
     }
   };
 
-  // Roster maths · organiser is always the +1
+  // Roster maths · organiser is always the +1, and anyone already sorted
+  // off-app counts as in without ever joining through Ringer
   const totalSlots = activated ? 10 : (size ?? 8);
-  const inCount    = confirmed.length + 1;
+  const reservedCount = activated ? 0 : Math.min(reserved, Math.max(0, totalSlots - 1));
+  const inCount    = confirmed.length + 1 + reservedCount;
   const toFill     = Math.max(0, totalSlots - inCount);
   const invitedWaiting = players.filter(pl => pl.status === 'invited');
 
@@ -594,6 +599,47 @@ export function Gather() {
             ))}
           </div>
 
+          {/* Already sorted · the whole point is finding the gap, not filling
+              every slot from scratch */}
+          <div style={{ borderTop: '1px solid var(--rx-hairline)', paddingTop: 22, marginBottom: 22 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em' }}>How many have you already got?</div>
+            <div style={{ fontSize: 13, color: 'var(--rx-faint)', marginTop: 3, marginBottom: 16 }}>
+              Mates you have already sorted, on Ringer or not. Not counting you.
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+              <button
+                onClick={() => setReserved(r => Math.max(0, r - 1))}
+                aria-label="One fewer already sorted"
+                style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid #E7E2D9', background: '#fff', fontSize: 22, fontWeight: 600, color: 'var(--rx-ink-soft)', cursor: 'pointer', lineHeight: 1 }}
+              >
+                −
+              </button>
+              <div style={{ minWidth: 70, textAlign: 'center' }}>
+                <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1, letterSpacing: '-0.03em' }}>{reserved}</div>
+                <div style={{ fontSize: 12, color: 'var(--rx-faint)', marginTop: 3 }}>already in</div>
+              </div>
+              <button
+                onClick={() => setReserved(r => Math.min(Math.max(0, (size ?? 8) - 1), r + 1))}
+                aria-label="One more already sorted"
+                style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid #E7E2D9', background: '#fff', fontSize: 22, fontWeight: 600, color: 'var(--rx-ink-soft)', cursor: 'pointer', lineHeight: 1 }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* The sentence the whole screen exists to produce */}
+          <div style={{ background: 'var(--rx-green-tint)', borderRadius: 16, padding: '14px 18px', marginBottom: 24, textAlign: 'center' }}>
+            <span style={{ fontSize: 15.5, fontWeight: 600, color: 'var(--rx-green-deep)' }}>
+              {(() => {
+                const need = Math.max(0, (size ?? 8) - 1 - reserved);
+                if (need === 0) return "You're full · no ringers needed.";
+                return `You need ${need} more ${need === 1 ? 'player' : 'players'}.`;
+              })()}
+            </span>
+          </div>
+
           <button
             onClick={() => { if (size == null) setSize(8); setPhase('crew'); }}
             aria-label="Choose your crew"
@@ -664,9 +710,12 @@ export function Gather() {
   };
 
   // Build the team sheet: You + confirmed (in) + invited (awaiting) + open
-  type Slot = { key: string; init: string; name: string; state: 'you' | 'in' | 'invited' | 'open' };
+  type Slot = { key: string; init: string; name: string; state: 'you' | 'in' | 'invited' | 'sorted' | 'open' };
   const rosterInvited: any[] = published ? invitedWaiting : crewSelected;
   const slots: Slot[] = [{ key: 'you', init: 'You', name: 'You', state: 'you' }];
+  for (let i = 0; i < reservedCount; i++) {
+    slots.push({ key: `sorted-${i}`, init: '✓', name: 'Sorted', state: 'sorted' });
+  }
   confirmed.forEach((pl: any) => slots.push({
     key: String(pl.id || pl.userId),
     init: (pl.displayName || '?').slice(0, 2).toUpperCase(),
@@ -695,6 +744,8 @@ export function Gather() {
     fontSize: 13, fontWeight: 600, transition: 'all .2s ease',
     ...(st === 'you' || st === 'in'
       ? { background: 'var(--rx-green)', color: '#fff' }
+      : st === 'sorted'
+      ? { background: 'var(--rx-green-tint)', color: 'var(--rx-green)' }
       : st === 'invited'
       ? { border: '2px dashed #C9C2B4', color: '#7C7669', background: 'rgba(0,0,0,0.02)' }
       : { border: '2px dashed #E2DBCD', background: 'transparent' }),
