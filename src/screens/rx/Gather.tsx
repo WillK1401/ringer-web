@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GATHER, PEOPLE, sampleEnabled } from '../../lib/sampleWorld';
+import { GAME_LEVELS, levelColors, levelSub, type GameLevel } from '../../lib/gameLevel';
 import { Avatar } from '../../components/rx/Avatar';
 import { useNavigate } from 'react-router';
 import { gamesApi, groupsApi, connectionsApi } from '../../lib/api';
@@ -121,6 +122,7 @@ export function Gather() {
   const [size, setSize]           = useState<number | null>(null);
   // Players already sorted off-app · they hold slots but never join through Ringer
   const [reserved, setReserved]   = useState(0);
+  const [level, setLevel]         = useState<GameLevel>('competitive');
   const [activated, setActivated] = useState(false);
   const [realGroups, setRealGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
@@ -241,6 +243,7 @@ export function Gather() {
         kickoffAt,
         playerCount: activated ? 10 : (size ?? 8),
         reservedSlots: activated ? 0 : reserved,
+        level,
         pitchCost: 0,
         visibility: initialVis,
         ...(realInvitees.length ? { invitees: realInvitees } : {}),
@@ -638,6 +641,35 @@ export function Gather() {
                 return `You need ${need} more ${need === 1 ? 'player' : 'players'}.`;
               })()}
             </span>
+          </div>
+
+          {/* Level · describes the game, never the player */}
+          <div style={{ borderTop: '1px solid var(--rx-hairline)', paddingTop: 22, marginBottom: 24 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 12 }}>How will it play?</div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              {GAME_LEVELS.map(l => {
+                const on = level === l.key;
+                const c = levelColors(l.key);
+                return (
+                  <button
+                    key={l.key}
+                    onClick={() => setLevel(l.key)}
+                    aria-pressed={on}
+                    aria-label={`${l.label} · ${l.sub}`}
+                    style={{
+                      flex: 1, fontSize: 13.5, fontWeight: 600, padding: '11px 6px', borderRadius: 12,
+                      cursor: 'pointer', letterSpacing: '-0.01em',
+                      ...(on
+                        ? { border: 'none', background: c.bg, color: c.fg, outline: `1.5px solid ${c.fg}` }
+                        : { border: '1px solid #E7E2D9', background: '#fff', color: 'var(--rx-faint)' }),
+                    }}
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--rx-faint)' }}>{levelSub(level)}</div>
           </div>
 
           <button

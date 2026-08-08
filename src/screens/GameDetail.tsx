@@ -4,6 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { gamesApi, usersApi } from '../lib/api';
 import { GameDetailSkeleton } from '../components/rx/Skeleton';
 import { UserCircle } from '../components/rx/UserCircle';
+import { levelLabel, levelSub, levelColors } from '../lib/gameLevel';
 import { formatDate, formatTime } from '../lib/utils';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
@@ -114,7 +115,8 @@ export function GameDetail() {
   const players     = (data?.players ?? []).filter((p) => p.status === 'confirmed');
   const guests      = data?.guests ?? [];
   const totalSlots  = game?.playerCount ?? 10;
-  const filled      = players.length + guests.length + 1; // + organiser
+  const reserved    = game?.reservedSlots ?? 0; // sorted off-app · hold slots, never join
+  const filled      = players.length + guests.length + reserved + 1; // + organiser
   const open        = Math.max(0, totalSlots - filled);
   const pricePence  = game?.costPerPlayer ?? 0;
   const priceStr    = (p: number) => `£${(p / 100).toFixed(2)}`;
@@ -130,6 +132,7 @@ export function GameDetail() {
     { key: 'org', label: isOrganiser ? 'You' : (organiser?.displayName?.split(' ')[0] ?? 'Host'), init: isOrganiser ? 'You' : initials(organiser?.displayName), kind: 'org' as const },
     ...players.map((p: any) => ({ key: p.id, label: p.displayName?.split(' ')[0] ?? '?', init: initials(p.displayName), kind: 'player' as const })),
     ...guests.map((g: any) => ({ key: g.id, label: g.name.split(' ')[0], init: initials(g.name), kind: 'guest' as const, guestId: g.id })),
+    ...Array.from({ length: reserved }, (_, i) => ({ key: `sorted-${i}`, label: 'Sorted', init: '✓', kind: 'guest' as const })),
     ...Array.from({ length: open }, (_, i) => ({ key: `open-${i}`, label: 'Open', init: '', kind: 'open' as const })),
   ].slice(0, totalSlots);
 
@@ -151,8 +154,13 @@ export function GameDetail() {
         <h1 style={{ margin: '0 0 10px', fontSize: 32, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1 }}>{game?.venue ?? '—'}</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 32 }}>
           <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 12px', borderRadius: 99 }}>{game?.sport ?? game?.format ?? '5-a-side'}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: levelColors(game?.level).fg, background: levelColors(game?.level).bg, padding: '4px 12px', borderRadius: 99 }}>{levelLabel(game?.level)}</span>
           <span style={{ fontSize: 13, color: 'var(--rx-faint)' }}>{game?.kickoffAt ? `${formatDate(game.kickoffAt)} · ${formatTime(game.kickoffAt)}` : ''}</span>
         </div>
+        {/* What you're signing up for · stated before the Join button */}
+        {levelSub(game?.level) && (
+          <div style={{ fontSize: 13.5, color: 'var(--rx-muted)', marginTop: -24, marginBottom: 32 }}>{levelSub(game?.level)}</div>
+        )}
 
         {/* Info cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 36 }}>

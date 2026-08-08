@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { gamesApi } from '../../lib/api';
 import { PEOPLE, sampleEnabled } from '../../lib/sampleWorld';
+import { levelLabel, levelColors } from '../../lib/gameLevel';
 import { Avatar } from '../../components/rx/Avatar';
 import { GameDetailUnfold } from './GameDetailUnfold';
 
@@ -358,6 +359,8 @@ export function Discover() {
                     {/* Scan line 1: sport + urgency */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rx-green)', background: 'var(--rx-green-tint)', padding: '4px 11px', borderRadius: 99 }}>{g.sport ?? g.format ?? 'Football'}</span>
+                      {/* Level · know what you're signing up for before you tap Join */}
+                      <span style={{ fontSize: 12, fontWeight: 600, color: levelColors(g.level).fg, background: levelColors(g.level).bg, padding: '4px 10px', borderRadius: 99 }}>{levelLabel(g.level)}</span>
                       {inNetwork && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--rx-clay)', background: '#F6ECE5', padding: '4px 10px', borderRadius: 99 }}>In your network</span>}
                       {spotsLeft > 0 && spotsLeft <= 3 && <span style={{ fontSize: 12, fontWeight: 700, color: '#B23A2E', marginLeft: 'auto' }}>{spotsLeft} left</span>}
                     </div>
