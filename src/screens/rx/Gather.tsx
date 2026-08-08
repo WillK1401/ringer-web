@@ -123,6 +123,7 @@ export function Gather() {
   // Players already sorted off-app · they hold slots but never join through Ringer
   const [reserved, setReserved]   = useState(0);
   const [level, setLevel]         = useState<GameLevel>('competitive');
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [activated, setActivated] = useState(false);
   const [realGroups, setRealGroups] = useState<any[]>([]);
   const [activeGroup, setActiveGroup] = useState<any | null>(null);
@@ -244,6 +245,7 @@ export function Gather() {
         playerCount: activated ? 10 : (size ?? 8),
         reservedSlots: activated ? 0 : reserved,
         level,
+        ...(repeatWeekly && !activated ? { repeatWeekly: true } : {}),
         pitchCost: 0,
         visibility: initialVis,
         ...(realInvitees.length ? { invitees: realInvitees } : {}),
@@ -543,6 +545,38 @@ export function Gather() {
             aria-label="Choose a specific time"
             style={{ ...fieldStyle, ...(customTime ? { borderColor: 'var(--rx-green)' } : {}) }}
           />
+
+          {/* Repeat · most crews play the same slot every week */}
+          <button
+            onClick={() => setRepeatWeekly(v => !v)}
+            role="switch"
+            aria-checked={repeatWeekly}
+            aria-label="Repeat this game weekly"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left',
+              marginTop: 22, padding: '15px 16px', borderRadius: 16, cursor: 'pointer',
+              border: `1px solid ${repeatWeekly ? 'var(--rx-green)' : '#E7E2D9'}`,
+              background: repeatWeekly ? 'var(--rx-green-tint)' : '#fff',
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--rx-ink)' }}>Repeat weekly</div>
+              <div style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--rx-faint)', marginTop: 2 }}>
+                {repeatWeekly
+                  ? 'Sets up the next 5 weeks. Your crew is only notified about the next one.'
+                  : 'Same day and time every week, so you only set it up once.'}
+              </div>
+            </div>
+            <span style={{
+              width: 46, height: 28, borderRadius: 99, flexShrink: 0, padding: 3,
+              background: repeatWeekly ? 'var(--rx-green)' : '#D8D2C7',
+              display: 'flex', alignItems: 'center',
+              justifyContent: repeatWeekly ? 'flex-end' : 'flex-start',
+              transition: 'background 180ms ease',
+            }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', display: 'block' }} />
+            </span>
+          </button>
 
           <button
             onClick={() => setPhase('size')}
