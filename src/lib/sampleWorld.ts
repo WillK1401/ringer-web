@@ -309,14 +309,30 @@ export interface Profile {
 
 const PROFILE_KEY = 'rx-profile';
 
+/**
+ * A real account must never inherit the sample cast's identity. ME is a
+ * fictional person · falling back to it put "Wednesday football. Sunday
+ * tennis." and a city they had never entered onto a stranger's profile.
+ */
+const BLANK_PROFILE: Profile = {
+  name: '',
+  init: '?',
+  color: '#5B7A6E',
+  city: '',
+  since: '',
+  oneLiner: '',
+  journeyLine: '',
+};
+
 export function loadProfile(): Profile {
+  const base = sampleEnabled() ? ME : BLANK_PROFILE;
   try {
     const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
-    const merged = { ...ME, ...saved };
-    merged.init = (merged.name?.trim()[0] || 'W').toUpperCase();
+    const merged = { ...base, ...saved };
+    merged.init = (merged.name?.trim()[0] || '?').toUpperCase();
     return merged;
   } catch {
-    return ME;
+    return { ...base };
   }
 }
 

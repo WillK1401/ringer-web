@@ -62,7 +62,10 @@ export function SportingLife() {
               : me.init}
           </div>
           <h2 style={{ margin: '0 0 4px', fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em' }}>{me.name}</h2>
-          <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginBottom: 10 }}>{me.city} · {me.since}</div>
+          {/* Only state what we actually know · a blank city must not render as "· since 2026" */}
+          <div style={{ fontSize: 14, color: 'var(--rx-faint)', marginBottom: 10 }}>
+            {[me.city, me.since].filter(Boolean).join(' · ')}
+          </div>
           <div className="serif" style={{ fontSize: 17, color: 'var(--rx-body)' }}>{me.oneLiner}</div>
         </div>
 
